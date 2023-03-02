@@ -18,6 +18,12 @@ var pacmanDirection = 'left'
 
 function Scene()
 {
+	// Loading texture to use in a TileMap
+	var tilesheet = new Texture("imgs/blue_tilesheet.png");
+
+	// Create tilemap
+	this.map = new Tilemap(tilesheet, [16, 16], [16, 3], [0, 48], MAPA1);
+	
 	// Loading spritesheet
 	var pacman = new Texture("imgs/pacman.png");
 
@@ -156,9 +162,10 @@ Scene.prototype.draw = function ()
 	context.fillStyle = "rgb(0, 0, 0)";
 	context.fillRect(0, 0, canvas.width, canvas.height);
 
+	// Draw tilemap
+	this.map.draw();
+
 	// Draw pacman sprite
 	this.pacmanSprite.draw();
 }
-
-
 
