@@ -95,28 +95,28 @@ Scene.prototype.update = function(deltaTime)
 	this.currentTime += deltaTime;
 
 
-	if(keyboard[37] && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){// KEY_LEFT
+	if( (keyboard[37] || keyboard[65]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){// KEY_LEFT
 
 		if(this.pacmanSprite.currentAnimation != PACMAN_EAT_LEFT)
 				this.pacmanSprite.setAnimation(PACMAN_EAT_LEFT);
 		this.pacmanSprite.x -= this.speedPacman;
 		this.pacmanDirection = 'left';
 	}
-	else if(keyboard[39] && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) ){ // KEY_RIGHT
+	else if( (keyboard[39] || keyboard[68]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) ){ // KEY_RIGHT
 	
 		if(this.pacmanSprite.currentAnimation != PACMAN_EAT_RIGHT)
 		   this.pacmanSprite.setAnimation(PACMAN_EAT_RIGHT);
 		this.pacmanSprite.x += this.speedPacman;
 		this.pacmanDirection = 'right';
 	}
-	else if(keyboard[38] && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){// KEY_UP
+	else if( (keyboard[38] || keyboard[87]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){// KEY_UP
 
 		if(this.pacmanSprite.currentAnimation != PACMAN_EAT_UP)
 				this.pacmanSprite.setAnimation(PACMAN_EAT_UP);
 		this.pacmanSprite.y -= this.speedPacman;
 		this.pacmanDirection = 'up';
 	}
-	else if(keyboard[40] && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) ){ // KEY_DOWN
+	else if( (keyboard[40] || keyboard[83]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) ){ // KEY_DOWN
 	
 		if(this.pacmanSprite.currentAnimation != PACMAN_EAT_DOWN)
 		   this.pacmanSprite.setAnimation(PACMAN_EAT_DOWN);
