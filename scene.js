@@ -72,6 +72,26 @@ function Scene()
 	this.pacmanSprite.addKeyframe(PACMAN_EAT_DOWN, [64, 96, 32, 32]);
 	this.pacmanSprite.addKeyframe(PACMAN_EAT_DOWN, [96, 96, 32, 32]);
 
+
+	// CADAVER
+	this.pacmanSprite.addAnimation();
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [0,  128, 32, 32]);
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [32, 128, 32, 32]);
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [64, 128, 32, 32]);
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [96, 128, 32, 32]);
+
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [0,  160, 32, 32]);
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [32, 160, 32, 32]);
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [64, 160, 32, 32]);
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [96, 160, 32, 32]);
+
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [0,  192, 32, 32]);
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [32, 192, 32, 32]);
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [64, 192, 32, 32]);
+	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [96, 192, 32, 32]);
+
+
+
 	// SET INITIAL ANIMATION
 	this.pacmanSprite.setAnimation(PACMAN_STOP_RIGHT);
 	
@@ -117,8 +137,11 @@ Scene.prototype.update = function(deltaTime)
 		this.pacmanSprite.y += this.speedPacman;
 		this.pacmanDirection = 'down';
 	}
+	else if(keyboard[13] && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){
+		this.pacmanSprite.setAnimation(PACMAN_CADAVER);
+	}
 
-	else{	//STOP
+	else if(this.pacmanSprite.currentAnimation != PACMAN_CADAVER) {	//STOP
 		this.pacmanSprite.setAnimation(this.pacmanSprite.currentAnimation);
 		if (this.pacmanDirection == 'left'){
 		 	this.pacmanSprite.setAnimation(PACMAN_STOP_LEFT);
@@ -132,9 +155,9 @@ Scene.prototype.update = function(deltaTime)
 		else if (this.pacmanDirection == 'down'){
 			this.pacmanSprite.setAnimation(PACMAN_STOP_DOWN);
 		}	   
-		else{
-			this.pacmanSprite.setAnimation(this.pacmanSprite.currentAnimation);
-		}	
+		// else{
+		// 	this.pacmanSprite.setAnimation(this.pacmanSprite.currentAnimation);
+		// }	
 	}
 	// Reset pacman
 	if(keyboard[32]){
