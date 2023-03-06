@@ -42,5 +42,41 @@ Tilemap.prototype.draw = function ()
 				                  this.basePos[0] + this.tileSize[0] * i, this.basePos[1] + this.tileSize[1] * j, blockSize[0], blockSize[1]);
 		}
 }
+//Devuelve el id del tile con el que colisiona
+Tilemap.prototype.collisionLeft = function(sprite)
+{
+	var x = Math.floor((sprite.x - this.basePos[0] + sprite.box.min[0]) / this.tileSize[0]);
+	var y = Math.floor((sprite.y - this.basePos[1] + (sprite.box.min[1] + sprite.box.max[1]) / 2) / this.tileSize[1]);
+	
+	return tileId = this.map.layers[0].data[y * this.map.width + x];
+}
+
+Tilemap.prototype.collisionRight = function(sprite)
+{
+	var x = Math.floor((sprite.x - this.basePos[0] + sprite.box.max[0]) / this.tileSize[0]);
+	var y = Math.floor((sprite.y - this.basePos[1] + (sprite.box.min[1] + sprite.box.max[1]) / 2) / this.tileSize[1]);
+	
+	return tileId = this.map.layers[0].data[y * this.map.width + x];
+}
+
+Tilemap.prototype.collisionUp = function(sprite)
+{
+	var x = Math.floor((sprite.x - this.basePos[0] + (sprite.box.min[0] + sprite.box.max[0]) / 2) / this.tileSize[0]);
+	var y = Math.floor((sprite.y - this.basePos[1] + sprite.box.min[1]) / this.tileSize[1]);
+	
+	return tileId = this.map.layers[0].data[y * this.map.width + x];
+}
+
+Tilemap.prototype.collisionDown = function(sprite)
+{
+	var x = Math.floor((sprite.x - this.basePos[0] + (sprite.box.min[0] + sprite.box.max[0]) / 2) / this.tileSize[0]);
+	var y = Math.floor((sprite.y - this.basePos[1] + sprite.box.max[1]) / this.tileSize[1]);
+	
+	return tileId = this.map.layers[0].data[y * this.map.width + x];
+}
+
+
+
+
 
 

@@ -28,9 +28,9 @@ function Scene()
 	var pacman = new Texture("imgs/pacman.png");
 
 	// Prepare pacman sprites & its animations
-	this.pacmanSprite = new Sprite(64, 250, 32, 32, 16, pacman);
+	this.pacmanSprite = new Sprite(216, 344, 32, 32, 16, pacman);
 
-	// Add STOP ANIMATIONS
+// Add STOP ANIMATIONS
 	// LEFT STOP
 	this.pacmanSprite.addAnimation();
 	this.pacmanSprite.addKeyframe(PACMAN_STOP_LEFT, [32, 32, 32, 32]);
@@ -97,6 +97,9 @@ function Scene()
 	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [96, 192, 32, 32]);
 
 
+	
+	// Set pacman collision box
+	this.pacmanSprite.setCollisionBox([8, 8], [23, 23])
 
 	// SET INITIAL ANIMATION
 	this.pacmanSprite.setAnimation(PACMAN_STOP_RIGHT);
@@ -114,61 +117,138 @@ Scene.prototype.update = function(deltaTime)
 	// Keep track of time
 	this.currentTime += deltaTime;
 
-
+	// Update pacman movement direction
 	if( (keyboard[37] || keyboard[65]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){// KEY_LEFT
-
-		if(this.pacmanSprite.currentAnimation != PACMAN_EAT_LEFT)
+		if(this.valid_turn_move('left')){
+			if(this.pacmanSprite.currentAnimation != PACMAN_EAT_LEFT)
 				this.pacmanSprite.setAnimation(PACMAN_EAT_LEFT);
-		this.pacmanSprite.x -= this.speedPacman;
-		this.pacmanDirection = 'left';
+			//this.pacmanSprite.x -= this.speedPacman;
+			this.pacmanDirection = 'left';
+		}
+		
 	}
 	else if( (keyboard[39] || keyboard[68]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) ){ // KEY_RIGHT
-	
-		if(this.pacmanSprite.currentAnimation != PACMAN_EAT_RIGHT)
-		   this.pacmanSprite.setAnimation(PACMAN_EAT_RIGHT);
-		this.pacmanSprite.x += this.speedPacman;
-		this.pacmanDirection = 'right';
+		
+		if(this.valid_turn_move('right')){
+			if(this.pacmanSprite.currentAnimation != PACMAN_EAT_RIGHT)
+			this.pacmanSprite.setAnimation(PACMAN_EAT_RIGHT);
+			//this.pacmanSprite.x += this.speedPacman;
+			this.pacmanDirection = 'right';
+		}
 	}
 	else if( (keyboard[38] || keyboard[87]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){// KEY_UP
 
-		if(this.pacmanSprite.currentAnimation != PACMAN_EAT_UP)
-				this.pacmanSprite.setAnimation(PACMAN_EAT_UP);
-		this.pacmanSprite.y -= this.speedPacman;
-		this.pacmanDirection = 'up';
+		if(this.valid_turn_move('up')){
+			if(this.pacmanSprite.currentAnimation != PACMAN_EAT_UP)
+					this.pacmanSprite.setAnimation(PACMAN_EAT_UP);
+			//this.pacmanSprite.y -= this.speedPacman;
+			this.pacmanDirection = 'up';
+		}
 	}
 	else if( (keyboard[40] || keyboard[83]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) ){ // KEY_DOWN
-	
-		if(this.pacmanSprite.currentAnimation != PACMAN_EAT_DOWN)
-		   this.pacmanSprite.setAnimation(PACMAN_EAT_DOWN);
-		this.pacmanSprite.y += this.speedPacman;
-		this.pacmanDirection = 'down';
+		
+		if(this.valid_turn_move('down')){
+			if(this.pacmanSprite.currentAnimation != PACMAN_EAT_DOWN)
+			this.pacmanSprite.setAnimation(PACMAN_EAT_DOWN);
+			//this.pacmanSprite.y += this.speedPacman;
+			this.pacmanDirection = 'down';
+		}
 	}
 	else if(keyboard[13] && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){
 		this.pacmanSprite.setAnimation(PACMAN_CADAVER);
 	}
 
-	else if(this.pacmanSprite.currentAnimation != PACMAN_CADAVER) {	//STOP
-		this.pacmanSprite.setAnimation(this.pacmanSprite.currentAnimation);
-		if (this.pacmanDirection == 'left'){
-		 	this.pacmanSprite.setAnimation(PACMAN_STOP_LEFT);
-		}
-		else if (this.pacmanDirection == 'right'){
-		 	this.pacmanSprite.setAnimation(PACMAN_STOP_RIGHT);
-		}
-		else if (this.pacmanDirection == 'up'){
-			this.pacmanSprite.setAnimation(PACMAN_STOP_UP);
-	   	}
-		else if (this.pacmanDirection == 'down'){
-			this.pacmanSprite.setAnimation(PACMAN_STOP_DOWN);
-		}	   
-		// else{
-		// 	this.pacmanSprite.setAnimation(this.pacmanSprite.currentAnimation);
-		// }	
-	}
+
+
+
+
+
+
+
+
+	// else if(this.pacmanSprite.currentAnimation != PACMAN_CADAVER) {	//STOP
+	// 	this.pacmanSprite.setAnimation(this.pacmanSprite.currentAnimation);
+	// 	if (this.pacmanDirection == 'left'){
+	// 	 	this.pacmanSprite.setAnimation(PACMAN_STOP_LEFT);
+	// 	}
+	// 	else if (this.pacmanDirection == 'right'){
+	// 	 	this.pacmanSprite.setAnimation(PACMAN_STOP_RIGHT);
+	// 	}
+	// 	else if (this.pacmanDirection == 'up'){
+	// 		this.pacmanSprite.setAnimation(PACMAN_STOP_UP);
+	//    	}
+	// 	else if (this.pacmanDirection == 'down'){
+	// 		this.pacmanSprite.setAnimation(PACMAN_STOP_DOWN);
+	// 	}	   
+	// 	// else{
+	// 	// 	this.pacmanSprite.setAnimation(this.pacmanSprite.currentAnimation);
+	// 	// }	
+	// }
 	// Reset pacman
-	if(keyboard[32]){
-		this.pacmanSprite.x = 64;
-		this.pacmanSprite.y = 250;
+	// if(keyboard[32]){
+	// 	this.pacmanSprite.x = 64;
+	// 	this.pacmanSprite.y = 250;
+
+	// }
+	else{
+		
+	}
+	switch(this.pacmanDirection){
+	case "left":
+		this.pacmanSprite.x -= this.speedPacman;
+		var tileId = this.map.collisionLeft(this.pacmanSprite);
+		if(tileId != 0 && tileId != 46 && tileId != 45)
+		{
+			this.pacmanSprite.x += this.speedPacman;
+			this.pacmanSprite.currentAnimation = PACMAN_STOP_LEFT
+			this.pacmanSprite.setAnimation(PACMAN_STOP_LEFT);
+		}
+		else if(tileId == 48){
+			this.catch_power_pellet()
+		}
+		break;
+
+		case "up":
+		this.pacmanSprite.y -= this.speedPacman;
+		var tileId = this.map.collisionUp(this.pacmanSprite);
+		if(tileId != 0 && tileId != 46 && tileId != 45)
+		{
+			this.pacmanSprite.y += this.speedPacman;
+			this.pacmanSprite.currentAnimation = PACMAN_STOP_UP
+			this.pacmanSprite.setAnimation(PACMAN_STOP_UP);
+		}
+		else if(tileId == 48){
+			this.catch_power_pellet()
+		}
+		break;
+
+		case "right":
+		this.pacmanSprite.x += this.speedPacman;
+		var tileId = this.map.collisionRight(this.pacmanSprite);
+		if(tileId != 0 && tileId != 46 && tileId != 45)
+		{
+			this.pacmanSprite.x -= this.speedPacman;
+			this.pacmanSprite.currentAnimation = PACMAN_STOP_RIGHT
+			this.pacmanSprite.setAnimation(PACMAN_STOP_RIGHT);
+		}
+		else if(tileId == 48){
+			this.catch_power_pellet()
+		}
+		break;
+
+	case "down":
+		this.pacmanSprite.y += this.speedPacman;
+		var tileId = this.map.collisionDown(this.pacmanSprite);
+		if(tileId != 0 && tileId != 46 && tileId != 45)
+		{
+			this.pacmanSprite.y -= this.speedPacman;
+			this.pacmanSprite.currentAnimation = PACMAN_STOP_DOWN
+			this.pacmanSprite.setAnimation(PACMAN_STOP_DOWN);
+		}
+		else if(tileId == 48){
+			this.catch_power_pellet()
+		}
+		break;
 	}
 
 	// Update sprite
@@ -192,3 +272,38 @@ Scene.prototype.draw = function ()
 	this.pacmanSprite.draw();
 }
 
+
+
+function valid_turn_move(direction){
+	switch(direction){
+		case "left":
+			var tileId = this.map.collisionLeft(this.pacmanSprite);
+			if(tileId != 0 && tileId != 46 && tileId != 45){
+				return false
+			}
+			break;
+		case "right":
+			var tileId = this.map.collisionRight(this.pacmanSprite);
+			if(tileId != 0 && tileId != 46 && tileId != 45){
+				return false
+			}
+			break;
+		case "up":
+			var tileId = this.map.collisionUp(this.pacmanSprite);
+			if(tileId != 0 && tileId != 46 && tileId != 45){
+				return false
+			}
+			break;
+		case "down":
+			var tileId = this.map.collisionDown(this.pacmanSprite);
+			if(tileId != 0 && tileId != 46 && tileId != 45){
+				return false
+			}
+			break;
+	}
+	return true;
+}
+
+function catch_power_pellet(){
+	null;
+}

@@ -3,29 +3,30 @@
 
 function Sprite(x, y, width, height, fps, spritesheet)
 {
-	//coordenadas x, y de la esquina superior izquierda
-	//fps vel reproducción del fotograma
-	//spritesheet -> 4 movs + muerte
-
 	this.x = x
 	this.y = y
 	this.width = width
 	this.height = height
 	
-	this.timePerKeyframe = 1000 / fps;	//cuanto tiempo por cada fotograma
+	this.timePerKeyframe = 1000 / fps;
 	
 	this.currentAnimation = 0;
-	this.currentKeyframe = 0;	//self +1 % num_frames
-	this.animations = [];	//array de array de arrays
+	this.currentKeyframe = 0;
+	this.animations = [];
 	this.timeInKeyframe = 0;
 	
 	this.spritesheet = spritesheet
+	
+	// Collision box
+	this.box = {}
+	this.box.min = [0, 0]
+	this.box.max = [width, height]
 }
 
 
 // Add an empty animation
 
-Sprite.prototype.addAnimation = function ()	//añade animaciones, devuelve su identificador (nº)
+Sprite.prototype.addAnimation = function ()
 {
 	this.animations.push([]);
 	
@@ -52,7 +53,7 @@ Sprite.prototype.addKeyframe = function (animationId, keyframe)
 
 // Set new animation. Current keyframe and time spent in it are reset
 
-Sprite.prototype.setAnimation = function (animationId)		//cambia animacion
+Sprite.prototype.setAnimation = function (animationId)
 {
 	if(animationId >= 0 && animationId < this.animations.length)
 	{
@@ -64,7 +65,7 @@ Sprite.prototype.setAnimation = function (animationId)		//cambia animacion
 
 // Updates animation by changing current keyframe according to the time passed (deltaTime)
 
-Sprite.prototype.update = function(deltaTime)	
+Sprite.prototype.update = function(deltaTime)
 {
 	if(this.currentAnimation >= 0 && this.currentAnimation < this.animations.length)
 	{
@@ -98,5 +99,18 @@ Sprite.prototype.draw = function ()
 	var keyframe = this.animations[this.currentAnimation][this.currentKeyframe];
 	context.drawImage(this.spritesheet.img, keyframe[0], keyframe[1], keyframe[2], keyframe[3], this.x, this.y, this.width, this.height);
 }
+
+// Change collision box
+
+Sprite.prototype.setCollisionBox = function(minBox, maxBox)
+{
+	this.box.min = minBox
+	this.box.max = maxBox
+}
+
+
+
+
+
 
 
