@@ -1,4 +1,13 @@
 
+/*
+tile 0 nada
+tila 45 negro
+tile 46 dot
+tile 48 powerpellet
+*/
+
+
+
 const PACMAN_STOP_LEFT = 0;
 const PACMAN_STOP_RIGHT = 1;
 const PACMAN_STOP_UP = 2;
@@ -13,6 +22,7 @@ const PACMAN_CADAVER = 8;
 
 
 var pacmanDirection = 'left'
+var puntuacion = 0	//Puntos por comer dots
 
 // Scene. Updates and draws a single scene of the game.
 
@@ -99,7 +109,7 @@ function Scene()
 
 	
 	// Set pacman collision box
-	this.pacmanSprite.setCollisionBox([8, 8], [23, 23])
+	this.pacmanSprite.setCollisionBox([6, 6], [28, 28]) //era al inicio [8,8], [23, 23]
 
 	// SET INITIAL ANIMATION
 	this.pacmanSprite.setAnimation(PACMAN_STOP_RIGHT);
@@ -131,7 +141,7 @@ Scene.prototype.update = function(deltaTime)
 		
 		if(this.valid_turn_move('right')){
 			if(this.pacmanSprite.currentAnimation != PACMAN_EAT_RIGHT)
-			this.pacmanSprite.setAnimation(PACMAN_EAT_RIGHT);
+				this.pacmanSprite.setAnimation(PACMAN_EAT_RIGHT);
 			//this.pacmanSprite.x += this.speedPacman;
 			this.pacmanDirection = 'right';
 		}
@@ -140,7 +150,7 @@ Scene.prototype.update = function(deltaTime)
 
 		if(this.valid_turn_move('up')){
 			if(this.pacmanSprite.currentAnimation != PACMAN_EAT_UP)
-					this.pacmanSprite.setAnimation(PACMAN_EAT_UP);
+				this.pacmanSprite.setAnimation(PACMAN_EAT_UP);
 			//this.pacmanSprite.y -= this.speedPacman;
 			this.pacmanDirection = 'up';
 		}
@@ -149,21 +159,15 @@ Scene.prototype.update = function(deltaTime)
 		
 		if(this.valid_turn_move('down')){
 			if(this.pacmanSprite.currentAnimation != PACMAN_EAT_DOWN)
-			this.pacmanSprite.setAnimation(PACMAN_EAT_DOWN);
+				this.pacmanSprite.setAnimation(PACMAN_EAT_DOWN);
 			//this.pacmanSprite.y += this.speedPacman;
 			this.pacmanDirection = 'down';
 		}
+
 	}
 	else if(keyboard[13] && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){
 		this.pacmanSprite.setAnimation(PACMAN_CADAVER);
 	}
-
-
-
-
-
-
-
 
 
 	// else if(this.pacmanSprite.currentAnimation != PACMAN_CADAVER) {	//STOP
@@ -190,63 +194,62 @@ Scene.prototype.update = function(deltaTime)
 	// 	this.pacmanSprite.y = 250;
 
 	// }
-	else{
-		
-	}
+
 	switch(this.pacmanDirection){
 	case "left":
+
 		this.pacmanSprite.x -= this.speedPacman;
 		var tileId = this.map.collisionLeft(this.pacmanSprite);
-		if(tileId != 0 && tileId != 46 && tileId != 45)
+		if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48)
 		{
 			this.pacmanSprite.x += this.speedPacman;
 			this.pacmanSprite.currentAnimation = PACMAN_STOP_LEFT
 			this.pacmanSprite.setAnimation(PACMAN_STOP_LEFT);
 		}
-		else if(tileId == 48){
-			this.catch_power_pellet()
+		else{
+			this.eat_dot("left", this.pacmanSprite.x, this.pacmanSprite.y)
 		}
 		break;
 
 		case "up":
 		this.pacmanSprite.y -= this.speedPacman;
 		var tileId = this.map.collisionUp(this.pacmanSprite);
-		if(tileId != 0 && tileId != 46 && tileId != 45)
+		if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48)
 		{
 			this.pacmanSprite.y += this.speedPacman;
 			this.pacmanSprite.currentAnimation = PACMAN_STOP_UP
 			this.pacmanSprite.setAnimation(PACMAN_STOP_UP);
 		}
-		else if(tileId == 48){
-			this.catch_power_pellet()
+		else{
+			this.eat_dot("up", this.pacmanSprite.x, this.pacmanSprite.y)
 		}
 		break;
 
 		case "right":
 		this.pacmanSprite.x += this.speedPacman;
 		var tileId = this.map.collisionRight(this.pacmanSprite);
-		if(tileId != 0 && tileId != 46 && tileId != 45)
+		if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48)
 		{
 			this.pacmanSprite.x -= this.speedPacman;
 			this.pacmanSprite.currentAnimation = PACMAN_STOP_RIGHT
 			this.pacmanSprite.setAnimation(PACMAN_STOP_RIGHT);
 		}
-		else if(tileId == 48){
-			this.catch_power_pellet()
+		else{
+			this.eat_dot("right", this.pacmanSprite.x, this.pacmanSprite.y)
 		}
 		break;
 
 	case "down":
 		this.pacmanSprite.y += this.speedPacman;
 		var tileId = this.map.collisionDown(this.pacmanSprite);
-		if(tileId != 0 && tileId != 46 && tileId != 45)
+		if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48)
 		{
 			this.pacmanSprite.y -= this.speedPacman;
 			this.pacmanSprite.currentAnimation = PACMAN_STOP_DOWN
 			this.pacmanSprite.setAnimation(PACMAN_STOP_DOWN);
 		}
-		else if(tileId == 48){
-			this.catch_power_pellet()
+		else{
+			this.eat_dot("down", this.pacmanSprite.x, this.pacmanSprite.y)
 		}
 		break;
 	}
@@ -274,36 +277,119 @@ Scene.prototype.draw = function ()
 
 
 
-function valid_turn_move(direction){
+Scene.prototype.valid_turn_move = function (direction){
+	check = true;
 	switch(direction){
 		case "left":
+			this.pacmanSprite.x -= this.speedPacman;
 			var tileId = this.map.collisionLeft(this.pacmanSprite);
 			if(tileId != 0 && tileId != 46 && tileId != 45){
-				return false
+				check = false
 			}
+			this.pacmanSprite.x += this.speedPacman;
 			break;
 		case "right":
+			this.pacmanSprite.x += this.speedPacman;
 			var tileId = this.map.collisionRight(this.pacmanSprite);
 			if(tileId != 0 && tileId != 46 && tileId != 45){
-				return false
+				check = false
 			}
+			this.pacmanSprite.x -= this.speedPacman;
 			break;
 		case "up":
+			this.pacmanSprite.y -= this.speedPacman;
 			var tileId = this.map.collisionUp(this.pacmanSprite);
 			if(tileId != 0 && tileId != 46 && tileId != 45){
-				return false
+				check = false
 			}
+			this.pacmanSprite.y += this.speedPacman;
 			break;
 		case "down":
+			this.pacmanSprite.y += this.speedPacman;
 			var tileId = this.map.collisionDown(this.pacmanSprite);
 			if(tileId != 0 && tileId != 46 && tileId != 45){
-				return false
+				check = false
+			}
+			this.pacmanSprite.y -= this.speedPacman;
+			break;
+	}
+	return check
+}
+
+Scene.prototype.eat_power_pellet = function(){
+	null;
+}
+
+Scene.prototype.eat_dot = function(direction, xpos, ypos){
+	x = Math.floor(xpos/16)// +1;
+	y = Math.floor(ypos/16)// -2;
+
+	console.log(x + " " + y)
+
+	switch(direction){
+		
+		case "left":
+			var tileId = this.map.collisionLeft(this.pacmanSprite);
+			if((tileId == 46 || tileId == 48) && 
+				(this.map.map.layers[0].data[(y-2) * this.map.map.width + x] == 46 || 
+				 this.map.map.layers[0].data[(y-2) * this.map.map.width + x] == 48) ){
+				if (this.map.map.layers[0].data[(y-2) * this.map.map.width + x] == 48){
+					this.eat_power_pellet()
+				}
+				else{ // dot
+					this.puntuacion = this.puntuacion + 10
+				}
+				this.map.map.layers[0].data[(y-2) * this.map.map.width + x] = 0
+
+			}
+			break;
+
+
+		case "right":
+			var tileId = this.map.collisionRight(this.pacmanSprite);
+			if((tileId == 46 || tileId == 48) && 
+				(this.map.map.layers[0].data[(y-2) * this.map.map.width + x+1] == 46 || 
+				 this.map.map.layers[0].data[(y-2) * this.map.map.width + x+1] == 48) ){
+				if (this.map.map.layers[0].data[(y-2) * this.map.map.width + x+1] == 48){
+					this.eat_power_pellet()
+				}
+				else{ // dot
+					this.puntuacion = this.puntuacion + 10
+				}
+				this.map.map.layers[0].data[(y-2) * this.map.map.width + x+1] = 0
+
+			}
+			break;
+			
+		case "up":
+			var tileId = this.map.collisionUp(this.pacmanSprite);
+			if((tileId == 46 || tileId == 48) && 
+				(this.map.map.layers[0].data[(y-2) * this.map.map.width + x +1] == 46 || 
+				this.map.map.layers[0].data[(y-2) * this.map.map.width + x +1] == 48) ){
+				if (this.map.map.layers[0].data[(y-2) * this.map.map.width + x +1] == 48){
+					this.eat_power_pellet()
+				}
+				else{ // dot
+					this.puntuacion = this.puntuacion + 10
+				}
+				this.map.map.layers[0].data[(y-2) * this.map.map.width + x +1] = 0
+			}
+			break;
+
+		case "down":
+			var tileId = this.map.collisionDown(this.pacmanSprite);
+			if((tileId == 46 || tileId == 48) && 
+				(this.map.map.layers[0].data[(y-1) * this.map.map.width + x +1] == 46 || 
+				this.map.map.layers[0].data[(y-1) * this.map.map.width + x +1] == 48) ){
+				if (this.map.map.layers[0].data[(y-1) * this.map.map.width + x +1] == 48){
+					this.eat_power_pellet()
+				}
+				else{ // dot
+					this.puntuacion = this.puntuacion + 10
+				}
+				this.map.map.layers[0].data[(y-1) * this.map.map.width + x +1] = 0
 			}
 			break;
 	}
-	return true;
-}
-
-function catch_power_pellet(){
-	null;
+	return
 }
