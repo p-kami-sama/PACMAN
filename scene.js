@@ -13,9 +13,9 @@ tile 48 powerpellet
 		SCATTER,	# pasa a CHASE cuando pacman come cierta cantidad de puntos
 			# hay un tile fuera del mapa que será su target_tile
 		CHASE		# Difiere del fantasma
-			Blinki rojo -> target_tile = donde esta Pacman
-			Pinki rosa -> target_tile = 4 tiles delante de la dirección de Pacman
-			Inki -> mira un tile 2 veces delante de la posición a la que mira Pacman e invierte la Posición de Blinki
+			Blinky rojo -> target_tile = donde esta Pacman
+			Pinky rosa -> target_tile = 4 tiles delante de la dirección de Pacman
+			Inky -> mira un tile 2 veces delante de la posición a la que mira Pacman e invierte la Posición de Blinki
 			Clyde naranja -> Sí pacman está a 8 tiles o menos, Pasa a Chase. Sino, va a por pacman como Blinki
 	estado determina el target_tile
 	Cuando entra a un tile_A, sabe a que tile_B irá, y la Dirección a la que irá para entrar al tile_C
@@ -156,8 +156,13 @@ function Scene()
 
 
 	// Fantasmas
-	this.blinky = new Phantom("blinky", 2, PhantomState.SCATTER, 64, 64, PhantomDirection.RIGHT, 96, 64, PhantomDirection.RIGHT );
-
+	this.blinky = new Phantom("blinky", 4, 4, 'up', 4, 3, 'left' );
+	this.pinky = new Phantom("pinky", 8, 4, 'up', 8, 3, 'left' );
+	this.inky = new Phantom("inky", 4, 9, 'up', 4, 8, 'up' );
+	this.clyde = new Phantom("clyde", 8, 9, 'up', 8, 8, 'up' );
+	// this.pinky = new Phantom("pinky", 2, PhantomState.SCATTER, 64, 64, PhantomDirection.RIGHT, 96, 64, PhantomDirection.RIGHT );
+	// this.inky = new Phantom("inky", 2, PhantomState.SCATTER, 64, 64, PhantomDirection.RIGHT, 96, 64, PhantomDirection.RIGHT );
+	// this.clyde = new Phantom("clyde", 2, PhantomState.SCATTER, 64, 64, PhantomDirection.RIGHT, 96, 64, PhantomDirection.RIGHT );
 
 
 
@@ -167,8 +172,6 @@ function Scene()
 
 Scene.prototype.update = function(deltaTime)
 {
-	this.blinky.sprite.update(deltaTime);
-
 
 	// Keep track of time
 	this.currentTime += deltaTime;
@@ -301,7 +304,14 @@ Scene.prototype.update = function(deltaTime)
 	}
 
 	// Update sprite
+	this.blinky.move()
 	this.pacmanSprite.update(deltaTime);
+	this.blinky.sprite.update(deltaTime);
+	this.pinky.sprite.update(deltaTime);
+	this.inky.sprite.update(deltaTime);
+	this.clyde.sprite.update(deltaTime);
+
+
 }
 
 Scene.prototype.draw = function ()
@@ -321,6 +331,10 @@ Scene.prototype.draw = function ()
 	this.pacmanSprite.draw();
 
 	this.blinky.sprite.draw();
+	this.pinky.sprite.draw();
+	this.inky.sprite.draw();
+	this.clyde.sprite.draw();
+
 }
 
 
