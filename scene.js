@@ -4,6 +4,9 @@ tile 0 nada
 tila 45 negro
 tile 46 dot
 tile 48 powerpellet
+
+width="448" height="576" -> 28, 36 ->LABERINTO (28, 31)
+
 */
 
 /*
@@ -156,15 +159,14 @@ function Scene()
 
 
 	// Fantasmas
-	this.blinky = new Phantom("blinky", 4, 4, 'up', 4, 3, 'left' );
-	this.pinky = new Phantom("pinky", 8, 4, 'up', 8, 3, 'left' );
-	this.inky = new Phantom("inky", 4, 9, 'up', 4, 8, 'up' );
-	this.clyde = new Phantom("clyde", 8, 9, 'up', 8, 8, 'up' );
-	// this.pinky = new Phantom("pinky", 2, PhantomState.SCATTER, 64, 64, PhantomDirection.RIGHT, 96, 64, PhantomDirection.RIGHT );
-	// this.inky = new Phantom("inky", 2, PhantomState.SCATTER, 64, 64, PhantomDirection.RIGHT, 96, 64, PhantomDirection.RIGHT );
-	// this.clyde = new Phantom("clyde", 2, PhantomState.SCATTER, 64, 64, PhantomDirection.RIGHT, 96, 64, PhantomDirection.RIGHT );
+//Phantom(name, actual_tile_x, actual_tile_y, actual_tile_out_direction, actual_direction, next_tile_x, next_tile_y, next_tile_out_direction)
+	this.blinky = new Phantom("blinky", 4, 4, 'up', 'up', 4, 3, 'left' );
+	this.pinky = new Phantom("pinky", 8, 4, 'up', 'up', 8, 3, 'left' );
+	this.inky = new Phantom("inky", 4, 9, 'up', 'up', 4, 8, 'up' );
+	this.clyde = new Phantom("clyde", 8, 9, 'up', 'up', 8, 8, 'up' );
 
-
+	//function Phantom(name, actual_tile_x, actual_tile_y, actual_tile_out_direction, actual_direction, next_tile_x, next_tile_y, next_tile_out_direction)
+	
 
 
 }
@@ -304,9 +306,11 @@ Scene.prototype.update = function(deltaTime)
 	}
 
 	// Update sprite
-	this.blinky.move()
+	
 	this.pacmanSprite.update(deltaTime);
-	this.blinky.sprite.update(deltaTime);
+
+	this.blinky.move(deltaTime)
+
 	this.pinky.sprite.update(deltaTime);
 	this.inky.sprite.update(deltaTime);
 	this.clyde.sprite.update(deltaTime);
