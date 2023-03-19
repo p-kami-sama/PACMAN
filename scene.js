@@ -308,12 +308,11 @@ Scene.prototype.update = function(deltaTime)
 	// Update sprite
 	
 	this.pacmanSprite.update(deltaTime);
+	this.blinky.move(deltaTime, this.map);
 
-	this.blinky.move(deltaTime)
-
-	this.pinky.sprite.update(deltaTime);
-	this.inky.sprite.update(deltaTime);
-	this.clyde.sprite.update(deltaTime);
+	this.pinky.move(deltaTime, this.map);
+	this.inky.move(deltaTime, this.map)
+	this.clyde.move(deltaTime, this.map)
 
 
 }
