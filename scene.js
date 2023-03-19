@@ -31,6 +31,7 @@ width="448" height="576" -> 28, 36 ->LABERINTO (28, 31)
 
 */
 
+
 const PACMAN_STOP_LEFT = 0;
 const PACMAN_STOP_RIGHT = 1;
 const PACMAN_STOP_UP = 2;
