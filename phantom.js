@@ -1,22 +1,19 @@
 
 
 
-// function Phantom(name, actual_tile_x, actual_tile_y, actual_tile_out_direction, actual_direction, next_tile_x, next_tile_y, next_tile_out_direction)
 function Phantom(name, Xpos, Ypos, actual_direction)
-
 {
     this.name = name;
 	this.speed = 2.0;
 	this.state = PhantomState.SCATTER;// 1; //SCATTER
     this.actual_direction = actual_direction;
 
-
     this.target_tile_x = 0
     this.target_tile_y = 0
-    	// Loading spritesheet
-    var fantasmas = new Texture("imgs/fantasmas.png");
-    this.sprite;
-	// Prepare pacman sprites & its animations
+
+    var fantasmas = new Texture("imgs/fantasmas.png");// Loading spritesheet
+
+    // Prepare Phantom sprites & its animations
     var offset
     switch (name){
         case 'blinky':
@@ -43,6 +40,7 @@ function Phantom(name, Xpos, Ypos, actual_direction)
             this.target_tile_y = 35
             break;
     };
+    
     // x, y, width, height, fps, spritesheet)
     this.sprite = new Sprite(Xpos, Ypos, 32, 32, 16, fantasmas);
 
@@ -150,7 +148,8 @@ Phantom.prototype.supermove = function (deltaTime, tilemap)
         };
 
         // si colisiona o está en 8, 8 -> busca ir por grietas
-        if (colisiona || ( ((this.sprite.x%16) == 0) && ((this.sprite.y%16) == 0) ) ){
+        if (colisiona || 
+            ( ((this.sprite.x%16) == 0) && ((this.sprite.y%16) == 0) )  ){
             var new_dir =this.obtener_nueva_direccion(this.actual_direction, tilemap);
             this.actual_direction = new_dir;
 
@@ -175,19 +174,15 @@ Phantom.prototype.supermove = function (deltaTime, tilemap)
            // prosigue en la direccion en la que no solisiona
         switch (this.actual_direction){
             case "left":
-                // this.center_x -= 1;
                 this.sprite.x -= 1;
                 break;
             case "right":
-                // this.center_x += 1;
                 this.sprite.x += 1;
                 break;
             case "up":
-                // this.center_y -= 1;
                 this.sprite.y -= 1;
                 break;
             case "down":
-                // this.center_y += 1;
                 this.sprite.y += 1;
                 break;
         };
