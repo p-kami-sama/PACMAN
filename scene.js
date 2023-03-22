@@ -160,13 +160,13 @@ function Scene()
 
 
 	// Fantasmas
-//Phantom(name, actual_tile_x, actual_tile_y, actual_tile_out_direction, actual_direction, next_tile_x, next_tile_y, next_tile_out_direction)
-	this.blinky = new Phantom("blinky", 4, 4, 'up', 'up', 4, 3, 'left' );
-	this.pinky = new Phantom("pinky", 8, 4, 'up', 'up', 8, 3, 'left' );
-	this.inky = new Phantom("inky", 4, 9, 'up', 'up', 4, 8, 'up' );
-	this.clyde = new Phantom("clyde", 8, 9, 'up', 'up', 8, 8, 'up' );
 
-	//function Phantom(name, actual_tile_x, actual_tile_y, actual_tile_out_direction, actual_direction, next_tile_x, next_tile_y, next_tile_out_direction)
+	this.blinky = new Phantom("blinky",16*3 ,16*3 , "right");
+
+	this.pinky = new Phantom("pinky",16*3 ,16*3 , "right");
+	this.inky = new Phantom("inky",16*3 ,16*3 , "right");
+	this.clyde = new Phantom("clyde",16*3 ,16*3 , "right");
+
 	
 
 
@@ -309,11 +309,11 @@ Scene.prototype.update = function(deltaTime)
 	// Update sprite
 	
 	this.pacmanSprite.update(deltaTime);
-	this.blinky.move(deltaTime, this.map);
+	this.blinky.supermove(deltaTime, this.map);
 
-	this.pinky.move(deltaTime, this.map);
-	this.inky.move(deltaTime, this.map)
-	this.clyde.move(deltaTime, this.map)
+	this.pinky.supermove(deltaTime, this.map);
+	this.inky.supermove(deltaTime, this.map);
+	this.clyde.supermove(deltaTime, this.map);
 
 
 }
@@ -457,5 +457,4 @@ Scene.prototype.eat_dot = function(direction, xpos, ypos){
 			}
 			break;
 	}
-	return
 }

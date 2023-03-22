@@ -1,37 +1,15 @@
 
-/*
-    actual_tile_x, actual_tile_y -> de la matrix de tilemap (0,0) -> arriba izquierda
-    center_x, center_y -> centro del fantasma en el tile actual
-    actual_tile_out_direction -> por que lado sale del tile actual
-    
-    actual_direction 
 
-    next_tile_x, next_tile_y -> de la matrix de tilemap (0,0) -> arriba izquierda
-    next_tile_out_direction -> por que lado sale del tile siguiente
 
-    NOTA -> restar 3 a actual_tile_y, next_tile_y para cualquier consulta en el vector del TileMap,
-        dado que marcan las posiciones del marco entero
-*/
+// function Phantom(name, actual_tile_x, actual_tile_y, actual_tile_out_direction, actual_direction, next_tile_x, next_tile_y, next_tile_out_direction)
+function Phantom(name, Xpos, Ypos, actual_direction)
 
-function Phantom(name, actual_tile_x, actual_tile_y, actual_tile_out_direction, actual_direction, next_tile_x, next_tile_y, next_tile_out_direction)
 {
     this.name = name;
 	this.speed = 2.0;
 	this.state = PhantomState.SCATTER;// 1; //SCATTER
-
-
-// valores x, y dentro del tile en el que están actualmente
     this.actual_direction = actual_direction;
 
-	this.actual_tile_x = actual_tile_x;
-	this.actual_tile_y = actual_tile_y;
-    this.center_x = 8;
-    this.center_y = 8;
-    this.actual_tile_out_direction = actual_tile_out_direction;
-
-    this.next_tile_x = next_tile_x;
-    this.next_tile_y = next_tile_y;
-    this.next_tile_out_direction = next_tile_out_direction;
 
     this.target_tile_x = 0
     this.target_tile_y = 0
@@ -66,7 +44,7 @@ function Phantom(name, actual_tile_x, actual_tile_y, actual_tile_out_direction, 
             break;
     };
     // x, y, width, height, fps, spritesheet)
-    this.sprite = new Sprite(this.actual_tile_x*16+8, this.actual_tile_y*16+8, 32, 32, 16, fantasmas);    
+    this.sprite = new Sprite(Xpos, Ypos, 32, 32, 16, fantasmas);
 
     this.sprite.addAnimation();
     this.sprite.addKeyframe(PhantomDirection.LEFT, [64, 0+offset, 32, 32]);
@@ -123,222 +101,172 @@ Phantom.prototype.set_target_tile = function (x, y, is_scared=false, tilemap)
     this.recalculate_mov_to_target_tile(is_scared, tilemap)
 }
 
-//  FALTA ESTO
-Phantom.prototype.recalculate_mov_to_target_tile = function (is_scared, tilemap)
+
+Phantom.prototype.recalculate_mov_to_target_tile = function (is_scared=false, tilemap){
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+Phantom.prototype.supermove = function (deltaTime, tilemap)
 {
-
-    if (is_scared){
-        // será cuando pacman se haya comido power pellet y haya de cambiarse todos los movimientos
-    }
-    else{   //  CALCULA EL NUEVO VALOR DE ->    this.next_tile_out_direction
-        
-        var left_dist  = Math.abs(this.target_tile_x - (this.actual_tile_x - 1));
-        var right_dist = Math.abs(this.target_tile_x - (this.actual_tile_x + 1));
-        var up_dist    = Math.abs(this.target_tile_y - (this.actual_tile_y - 1));
-        var down_dist  = Math.abs(this.target_tile_y - (this.actual_tile_y + 1))
-
-        // evita que de la vuelta
-        switch (this.actual_tile_out_direction){
+    var movimiento_pendiente = Math.floor(this.speed);
+    while ((0 < movimiento_pendiente)){
+        var colisiona = false;
+        switch (this.actual_direction){ //se comprueba si colisiona por la dirección en que se mueve
             case 'left':
-                right_dist = Infinity;
+                var id = tilemap.collisionLeft(this.sprite);
+                if ( ![0, 45, 46, 48].includes(id) ){
+                    colisiona = true;
+                }
                 break;
             case 'right':
-                left_dist = Infinity;
+                var id = tilemap.collisionRight(this.sprite);
+                if ( ![0, 45, 46, 48].includes(id) ){
+                    colisiona = true;
+                }
                 break;
             case 'up':
-                down_dist = Infinity;
+                var id = tilemap.collisionUp(this.sprite);
+                if ( ![0, 45, 46, 48].includes(id) ){
+                    colisiona = true;
+                }
                 break;
             case 'down':
-                up_dist = Infinity;
+                var id = tilemap.collisionDown(this.sprite);
+                if ( ![0, 45, 46, 48].includes(id) ){
+                    colisiona = true;
+                }
                 break;
         };
-        // evita que se vaya por casillas invalidas
+
+        // si colisiona o está en 8, 8 -> busca ir por grietas
+        if (colisiona || ( ((this.sprite.x%16) == 0) && ((this.sprite.y%16) == 0) ) ){
+            var new_dir =this.obtener_nueva_direccion(this.actual_direction, tilemap);
+            this.actual_direction = new_dir;
+
+            switch (this.actual_direction){
+                case 'left':
+                    this.sprite.setAnimation(0)
+                    break;
+                case 'right':
+                    this.sprite.setAnimation(1)
+                    break;
+                case 'up':
+                    this.sprite.setAnimation(2)
+                    break;
+                case 'down':
+                    this.sprite.setAnimation(3)
+                    break;
+            };
+            colisiona = false;
+
+
+        }
+           // prosigue en la direccion en la que no solisiona
+        switch (this.actual_direction){
+            case "left":
+                // this.center_x -= 1;
+                this.sprite.x -= 1;
+                break;
+            case "right":
+                // this.center_x += 1;
+                this.sprite.x += 1;
+                break;
+            case "up":
+                // this.center_y -= 1;
+                this.sprite.y -= 1;
+                break;
+            case "down":
+                // this.center_y += 1;
+                this.sprite.y += 1;
+                break;
+        };
+        movimiento_pendiente -= 1;
         
-       
 
-        // tamaño del laberinto -> 28x31
-
-
-        console.log(this.next_tile_x)
-        console.log(this.next_tile_y-3)
-        console.log(tilemap.map.width)
-        console.log( tilemap.map.layers[0].data[ (this.next_tile_y-3 +1) * tilemap.map.width  + this.next_tile_x]  )
-        
+    
+    }
 
 
+    console.log('-----------------------')
+    console.log("Colisiona:", colisiona)
+    console.log("X", this.sprite.x, "Y", this.sprite.y, "direccion", this.actual_direction);
 
+    this.sprite.update(deltaTime);
+}
 
-        // left
-        if ( (this.next_tile_x-1 < 0) || (28 <= this.next_tile_x-1) || (this.next_tile_y-3 < 0) || (31 <= this.next_tile_y-3) ||
-             ! [0, 45, 46, 48].includes( tilemap.map.layers[0].data[ (this.next_tile_y-3) * tilemap.map.width  + this.next_tile_x-1] )  ){
+Phantom.prototype.obtener_nueva_direccion = function(old_dir, tilemap){
+
+    console.log("SE LLAMA A obtener_nueva_direccion")
+    var left_dist  = Math.abs( Math.floor(this.sprite.x/16)-1 - this.target_tile_x );
+    var right_dist = Math.abs( Math.floor(this.sprite.x/16)+1 - this.target_tile_x );
+    var up_dist    = Math.abs( Math.floor(this.sprite.y/16)-1 - this.target_tile_y );
+    var down_dist  = Math.abs( Math.floor(this.sprite.y/16)+1 - this.target_tile_y );
+    
+    console.log(old_dir, left_dist, right_dist, up_dist, down_dist);
+    switch (old_dir){ //evita el retroceso
+        case 'left':
+            right_dist = Infinity;
+            break;
+        case 'right':
             left_dist = Infinity;
-        }
-        // right
-        if ( (this.next_tile_x+1 < 0) || (28 <= this.next_tile_x+1) || (this.next_tile_y-3 < 0) || (31 <= this.next_tile_y-3) ||
-             ! [0, 45, 46, 48].includes( tilemap.map.layers[0].data[ (this.next_tile_y-3) * tilemap.map.width  + this.next_tile_x+1] )  ){
-            righy_dist = Infinity;
-        }
-        // up
-        if ( (this.next_tile_x < 0) || (28 <= this.next_tile_x) || (this.next_tile_y-3-1 < 0) || (31 <= this.next_tile_y-3-1) ||
-             ! [0, 45, 46, 48].includes( tilemap.map.layers[0].data[ (this.next_tile_y-3 -1) * tilemap.map.width  + this.next_tile_x] )  ){
-            up_dist = Infinity;
-        }
-        // down
-        if (  (this.next_tile_x < 0) || (28 <= this.next_tile_x) || (this.next_tile_y-3+1 < 0) || (31 <= this.next_tile_y-3+1) ||
-             ! [0, 45, 46, 48].includes( tilemap.map.layers[0].data[ (this.next_tile_y-3 +1) * tilemap.map.width  + this.next_tile_x] )  ){
+            break;
+        case 'up':
             down_dist = Infinity;
-        }
+            break;
+        case 'down':
+            up_dist = Infinity;
+            break;
+    };
+    console.log(old_dir, left_dist, right_dist, up_dist, down_dist);
+        // left
+        if ( ! [0, 45, 46, 48].includes( tilemap.collisionLeft(this.sprite) )  ){
+            left_dist = Infinity;
+        };
+        // right
+        if ( ! [0, 45, 46, 48].includes( tilemap.collisionRight(this.sprite) )  ){
+            right_dist = Infinity;
+        };
+        // up
+        if ( ! [0, 45, 46, 48].includes( tilemap.collisionUp(this.sprite) )  ){
+            up_dist = Infinity;
+        };
+        // down
+        if ( ! [0, 45, 46, 48].includes( tilemap.collisionDown(this.sprite) )  ){
+            down_dist = Infinity;
+        };
+  
+
         var min_dist = Math.min(left_dist, right_dist, up_dist, down_dist);
+
+        console.log("old_dir:", old_dir, left_dist, right_dist, up_dist, down_dist, "min_dist:", min_dist);
 
         // orden -> up, left, down, right
         if( min_dist == up_dist){
-            this.next_tile_out_direction = 'up';
+            console.log("new_dir:", "up");
+            return "up";
         }
         else if( min_dist == left_dist){
-            this.next_tile_out_direction = 'left';
+            console.log("new_dir:", "left");
+            return "left";
         }
         else if( min_dist == down_dist){
-            this.next_tile_out_direction = 'down';
+            console.log("new_dir:", "down");
+            return "down";
         }
         else { // ( min_dist == right_dist)
-            this.next_tile_out_direction = 'right';
-        }        
-    }
-}
-
-
-Phantom.prototype.move = function (deltaTime, tilemap)
-{
-    console.log(tilemap.map.layers[0])
-/*
-	this.actual_tile_x, this.actual_tile_y
-    this.center_x, this.center_y  ->  entre 0 y 15
-    this.actual_tile_out_direction
-	this.actual_direction
-
-    this.next_tile_x, this.next_tile_y
-	this.next_tile_out_direction
-*/
-    var movimiento_pendiente = this.speed;
-
-    while ((0 < movimiento_pendiente)){
-        //comprobar si se sale del tile
-        if (this.actual_direction != this.actual_tile_out_direction){
-            // va al centro del tile, gira, y luego -> this.actual_direction = this.actual_tile_out_direction
-            switch (this.actual_direction){
-                case "left":
-                    this.center_x -= 1
-                    break;
-                case "right":
-                    this.center_x += 1
-                    break;
-                case "up":
-                    this.center_y -= 1
-                    break;
-                case "down":
-                    this.center_y += 1
-                    break;
-            }; 
-            if ((this.center_x == 8) && (this.center_y == 8)){
-                this.actual_direction = this.actual_tile_out_direction;
-                // actualiza la animacian actual a la correcta
-                switch (this.actual_direction){
-                    case 'left':
-                        this.sprite.setAnimation(0)
-                        break;
-                    case 'right':
-                        this.sprite.setAnimation(1)
-                        break;
-                    case 'up':
-                        this.sprite.setAnimation(2)
-                        break;
-                    case 'down':
-                        this.sprite.setAnimation(3)
-                        break;
-                };
-            }
-        }
-        else{ // this.actual_direction == this.actual_tile_out_direction
-            if (this.actual_direction == "left" && this.center_x == 0){
-                this.update_tile_location(15, this.center_y, tilemap)
-            }
-            else if (this.actual_direction == "right" && this.center_x == 15){
-                this.update_tile_location(0, this.center_y, tilemap)
-            }
-            else if (this.actual_direction == "up" && this.center_y == 0){
-                this.update_tile_location(this.center_x, 15, tilemap)
-            }
-            else if (this.actual_direction == "down" && this.center_y == 15){
-                this.update_tile_location(this.center_x, 0, tilemap)
-            }
-            else{
-                switch (this.actual_direction){
-                    case "left":
-                        this.center_x -= 1
-                        break;
-                    case "right":
-                        this.center_x += 1
-                        break;
-                    case "up":
-                        this.center_y -= 1
-                        break;
-                    case "down":
-                        this.center_y += 1
-                        break;
-                };
-            }
+            console.log("new_dir:", "right");
+            return "right";
         }
 
-
-        movimiento_pendiente -= 1;
-    }   // end while
-
-
-    // acercarse al centro
-//    this.actual_direction == "left" && 8 < this.center_x;
-
-    
-
-    // if (this.actual_direction == "left"){
-    //     if ((this.center_x - this.speed) < 0){
-    //         this.actual_tile_x -= 1
-    //         this.center_x = 15 - absolute(this.center_x - this.speed)
-    //     }
-    // }
-
-
-
-    this.sprite.x = this.actual_tile_x*16+this.center_x;
-    this.sprite.y = this.actual_tile_y*16+this.center_y;
-
-    this.sprite.update(deltaTime);
-
-}
-// Se llama cuando se pasa del Tile actual al siguiente tile que se tenía como objetivo a seguir
-Phantom.prototype.update_tile_location = function (new_center_x, new_center_y, tilemap)
-{
-    this.center_x = new_center_x;
-    this.center_y = new_center_y;
-
-    this.actual_tile_x = this.next_tile_x;
-    this.actual_tile_y = this.next_tile_y;
-    this.actual_tile_out_direction = this.next_tile_out_direction;
-
-    switch (this.actual_direction){
-        case "left":
-            this.next_tile_x -= 1
-            break;
-        case "right":
-            this.next_tile_x += 1
-            break;
-        case "up":
-            this.next_tile_y -= 1
-            break;
-        case "down":
-            this.next_tile_y += 1
-            break;
-    };
-    //ACABAR
-    this.next_tile_out_direction;
-    this.recalculate_mov_to_target_tile(false, tilemap)
 }
