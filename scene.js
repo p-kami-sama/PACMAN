@@ -9,27 +9,7 @@ width="448" height="576" -> 28, 36 ->LABERINTO (28, 31)
 
 */
 
-/*
-	No puede pararse ni dar la vuelta
-	fantasmas -> estados: 
-		FRIGHTENED,	# ASUSTADOS DE PACMAN
-		SCATTER,	# pasa a CHASE cuando pacman come cierta cantidad de puntos
-			# hay un tile fuera del mapa que será su target_tile
-		CHASE		# Difiere del fantasma
-			Blinky rojo -> target_tile = donde esta Pacman
-			Pinky rosa -> target_tile = 4 tiles delante de la dirección de Pacman
-			Inky -> mira un tile 2 veces delante de la posición a la que mira Pacman e invierte la Posición de Blinki
-			Clyde naranja -> Sí pacman está a 8 tiles o menos, Pasa a Chase. Sino, va a por pacman como Blinki
-	estado determina el target_tile
-	Cuando entra a un tile_A, sabe a que tile_B irá, y la Dirección a la que irá para entrar al tile_C
 
-
-	velocidad de los fantasmas -> número entero: 2
-
-	En elección de caminos cuando hay empate en distancia a target tile: orden Up, left, 
-	No van hacia atras
-
-*/
 
 
 const PACMAN_STOP_LEFT = 0;
@@ -53,12 +33,6 @@ const PhantomDirection = {
 	RIGHT: 1, 
 	UP: 2,
 	DOWN: 3,
-};
-
-const PhantomState = {
-	FRIGHTENED: 5,
-	SCATTER: 1,
-	CHASE: 2,
 };
 
 
@@ -161,11 +135,11 @@ function Scene()
 
 	// Fantasmas
 
-	this.blinky = new Phantom("blinky",16*3 ,16*3 , "right");
+	this.blinky = new Phantom("blinky",16*3+8 ,16*3+8 , "right");
 
-	this.pinky = new Phantom("pinky",16*3 ,16*3 , "right");
-	this.inky = new Phantom("inky",16*3 ,16*3 , "right");
-	this.clyde = new Phantom("clyde",16*3 ,16*3 , "right");
+	this.pinky = new Phantom("pinky",16*3+8 ,16*3+8 , "right");
+	this.inky = new Phantom("inky",16*3+8 ,16*3+8 , "right");
+	this.clyde = new Phantom("clyde",16*3+8 ,16*3+8 , "right");
 
 	
 

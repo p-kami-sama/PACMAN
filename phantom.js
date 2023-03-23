@@ -14,7 +14,7 @@ function Phantom(name, Xpos, Ypos, actual_direction)
     var fantasmas = new Texture("imgs/fantasmas.png");// Loading spritesheet
 
     // Prepare Phantom sprites & its animations
-    var offset
+    var offset;
     switch (name){
         case 'blinky':
             offset = 0;
@@ -110,51 +110,19 @@ Phantom.prototype.recalculate_mov_to_target_tile = function (is_scared=false, ti
 
 
 
-
-
-
-
-
 Phantom.prototype.supermove = function (deltaTime, tilemap)
 {
     var movimiento_pendiente = Math.floor(this.speed);
     while ((0 < movimiento_pendiente)){
-        var colisiona = false;
-        switch (this.actual_direction){ //se comprueba si colisiona por la dirección en que se mueve
-            case 'left':
-                var id = tilemap.collisionLeft(this.sprite);
-                if ( ![0, 45, 46, 48].includes(id) ){
-                    colisiona = true;
-                }
-                break;
-            case 'right':
-                var id = tilemap.collisionRight(this.sprite);
-                if ( ![0, 45, 46, 48].includes(id) ){
-                    colisiona = true;
-                }
-                break;
-            case 'up':
-                var id = tilemap.collisionUp(this.sprite);
-                if ( ![0, 45, 46, 48].includes(id) ){
-                    colisiona = true;
-                }
-                break;
-            case 'down':
-                var id = tilemap.collisionDown(this.sprite);
-                if ( ![0, 45, 46, 48].includes(id) ){
-                    colisiona = true;
-                }
-                break;
-        };
 
-        // si colisiona o está en 8, 8 -> busca ir por grietas
-        if (colisiona || 
-            ( ((this.sprite.x%16) == 0) && ((this.sprite.y%16) == 0) )  ){
+        // si está en 8, 8 -> busca ir por grietas
+        if ( ( ((this.sprite.x%16) == 8) && ((this.sprite.y%16) == 8) )  ){
             var new_dir =this.obtener_nueva_direccion(this.actual_direction, tilemap);
             this.actual_direction = new_dir;
 
             switch (this.actual_direction){
                 case 'left':
+                    // this.sprite.x -= this.sprite.x % 16
                     this.sprite.setAnimation(0)
                     break;
                 case 'right':
@@ -167,8 +135,6 @@ Phantom.prototype.supermove = function (deltaTime, tilemap)
                     this.sprite.setAnimation(3)
                     break;
             };
-            colisiona = false;
-
 
         }
            // prosigue en la direccion en la que no solisiona
@@ -188,27 +154,22 @@ Phantom.prototype.supermove = function (deltaTime, tilemap)
         };
         movimiento_pendiente -= 1;
         
-
+        console.log('-----------------------', this.name);
+        console.log("X", this.sprite.x, "Y", this.sprite.y, "direccion", this.actual_direction);
+    
     
     }
-
-
-    console.log('-----------------------')
-    console.log("Colisiona:", colisiona)
-    console.log("X", this.sprite.x, "Y", this.sprite.y, "direccion", this.actual_direction);
 
     this.sprite.update(deltaTime);
 }
 
 Phantom.prototype.obtener_nueva_direccion = function(old_dir, tilemap){
-
-    console.log("SE LLAMA A obtener_nueva_direccion")
-    var left_dist  = Math.abs( Math.floor(this.sprite.x/16)-1 - this.target_tile_x );
-    var right_dist = Math.abs( Math.floor(this.sprite.x/16)+1 - this.target_tile_x );
-    var up_dist    = Math.abs( Math.floor(this.sprite.y/16)-1 - this.target_tile_y );
-    var down_dist  = Math.abs( Math.floor(this.sprite.y/16)+1 - this.target_tile_y );
     
-    console.log(old_dir, left_dist, right_dist, up_dist, down_dist);
+    var left_dist  = Math.abs (Math.sqrt(  Math.pow((Math.floor(this.sprite.x/16)-1 - this.target_tile_x), 2) + Math.pow((Math.floor(this.sprite.y/16) - this.target_tile_y), 2)  ));
+    var right_dist = Math.abs (Math.sqrt(  Math.pow((Math.floor(this.sprite.x/16)+1 - this.target_tile_x), 2) + Math.pow((Math.floor(this.sprite.y/16) - this.target_tile_y), 2)  ));
+    var up_dist    = Math.abs (Math.sqrt(  Math.pow((Math.floor(this.sprite.x/16) - this.target_tile_x), 2) + Math.pow((Math.floor(this.sprite.y/16)-1 - this.target_tile_y), 2)  ));
+    var down_dist  = Math.abs (Math.sqrt(  Math.pow((Math.floor(this.sprite.x/16) - this.target_tile_x), 2) + Math.pow((Math.floor(this.sprite.y/16)+1 - this.target_tile_y), 2)  ));
+
     switch (old_dir){ //evita el retroceso
         case 'left':
             right_dist = Infinity;
@@ -223,7 +184,6 @@ Phantom.prototype.obtener_nueva_direccion = function(old_dir, tilemap){
             up_dist = Infinity;
             break;
     };
-    console.log(old_dir, left_dist, right_dist, up_dist, down_dist);
         // left
         if ( ! [0, 45, 46, 48].includes( tilemap.collisionLeft(this.sprite) )  ){
             left_dist = Infinity;
@@ -244,24 +204,130 @@ Phantom.prototype.obtener_nueva_direccion = function(old_dir, tilemap){
 
         var min_dist = Math.min(left_dist, right_dist, up_dist, down_dist);
 
-        console.log("old_dir:", old_dir, left_dist, right_dist, up_dist, down_dist, "min_dist:", min_dist);
 
         // orden -> up, left, down, right
         if( min_dist == up_dist){
-            console.log("new_dir:", "up");
             return "up";
         }
         else if( min_dist == left_dist){
-            console.log("new_dir:", "left");
             return "left";
         }
         else if( min_dist == down_dist){
-            console.log("new_dir:", "down");
             return "down";
         }
         else { // ( min_dist == right_dist)
-            console.log("new_dir:", "right");
             return "right";
         }
 
+}
+
+const PhantomState = {
+    FRIGHTENED: 5,
+    SCATTER: 1,
+    CHASE: 2,
+};
+Phantom.prototype.set_new_state = function(new_state, tilemap){
+
+    switch(new_state){
+        case PhantomState.SCATTER:
+            this.set_SCATTER(new_state, tilemap);
+        break;
+
+        case PhantomState.CHASE:
+
+        break;
+        case PhantomState.FRIGHTENED:
+
+        break;
+    };
+
+};
+
+Phantom.prototype.set_SCATTER = function(new_state, tilemap){
+    this.state = new_state;
+    switch (this.name){
+        case 'blinky':
+            this.set_target_tile(25, 0, false, tilemap);
+            break;
+
+        case 'pinky':
+            this.set_target_tile(2, 0, false, tilemap);
+            break;
+
+        case 'inky':
+            this.set_target_tile(25, 35, false, tilemap);
+            break;
+
+        case 'clyde':
+            this.set_target_tile(2, 35, false, tilemap);
+            break;
+    };
+}
+
+
+/*
+	No puede pararse ni dar la vuelta
+	fantasmas -> estados: 
+		FRIGHTENED,	# ASUSTADOS DE PACMAN
+		SCATTER,	# pasa a CHASE cuando pacman come cierta cantidad de puntos
+			# hay un tile fuera del mapa que será su target_tile
+		CHASE		# Difiere del fantasma
+			Blinky rojo -> target_tile = donde esta Pacman
+			Pinky rosa -> target_tile = 4 tiles delante de la dirección de Pacman
+			Inky -> mira un tile 2 veces delante de la posición a la que mira Pacman e invierte la Posición de Blinki
+			Clyde naranja -> Sí pacman está a 8 tiles o menos, Pasa a Chase. Sino, va a por pacman como Blinki
+	estado determina el target_tile
+	Cuando entra a un tile_A, sabe a que tile_B irá, y la Dirección a la que irá para entrar al tile_C
+
+
+	velocidad de los fantasmas -> número entero: 2
+
+	En elección de caminos cuando hay empate en distancia a target tile: orden Up, left, 
+	No van hacia atras
+
+*/
+
+Phantom.prototype.set_CHASE = function(new_state, tilemap, pacman_x, pacman_y, pacman_dir, blinky_x, blinky_y){
+    this.state = new_state;
+    switch (this.name){
+        case 'blinky': //hecho
+            this.set_target_tile(pacman_x, pacman_y, false, tilemap);
+            break;
+
+        case 'pinky': //hecho
+            var x = pacman_x;
+            var y = pacman_y;
+            switch (pacman_dir){
+                case "left":
+                    x = Math.max(0, pacman_x-4)
+                    break;
+                case "right":
+                    x = Math.min(28, pacman_x+4)
+                    break;
+                case "up":
+                    y = Math.max(0, pacman_y-4)
+                    break;
+                case "down":
+                    y = Math.min(31, pacman_y+4)
+                    break;
+            }
+            this.set_target_tile(x, y, false, tilemap);
+            break;
+
+        case 'inky':
+            this.set_target_tile(25, 35, false, tilemap);
+            break;
+
+        case 'clyde': // hecho
+            var clyde_x =  Math.floor(this.sprite.x/16);
+            var clyde_y =  Math.floor(this.sprite.x/16);
+            if( (Math.abs(pacman_x -clyde_x) + Math.abs(pacman_y -clyde_y)) > 8){
+                // a más de 8 tiles de pacman, va a por el
+                this.set_target_tile(pacman_x, pacman_y, false, tilemap);
+            }
+            else{
+                this.set_SCATTER(PhantomState.SCATTER, tilemap);
+            }
+            break;
+    };
 }
