@@ -10,7 +10,7 @@ width="448" height="576" -> 28, 36 ->LABERINTO (28, 31)
 */
 
 
-
+var contador = 0;
 
 const PACMAN_STOP_LEFT = 0;
 const PACMAN_STOP_RIGHT = 1;
@@ -25,8 +25,8 @@ const PACMAN_EAT_DOWN = 7;
 const PACMAN_CADAVER = 8;
 
 
-var pacmanDirection = 'left'
-var puntuacion = 0	//Puntos por comer dots
+// var pacmanDirection = 'left';
+var puntuacion = 0;	//Puntos por comer dots
 
 const PhantomDirection = {
 	LEFT: 0,
@@ -132,23 +132,51 @@ function Scene()
 	// Store current time
 	this.currentTime = 0
 
+	this.pacmanDirection = 'right';
+	this.pacmanSprite.setAnimation(PACMAN_EAT_RIGHT);
 
-	// Fantasmas
+	//  Posicion inicial donde se pintan los fantasmas
 
 	this.blinky = new Phantom("blinky",16*3+8 ,16*3+8 , "right");
-
 	this.pinky = new Phantom("pinky",16*3+8 ,16*3+8 , "right");
 	this.inky = new Phantom("inky",16*3+8 ,16*3+8 , "right");
 	this.clyde = new Phantom("clyde",16*3+8 ,16*3+8 , "right");
 
+
+	// esto se usa para especificar el estado inicial
+	var pacman_x = Math.floor(this.pacmanSprite.x/16);
+	var pacman_y = Math.floor(this.pacmanSprite.y/16);
+	var blinky_x = Math.floor(this.blinky.sprite.x/16);
+	var blinky_y = Math.floor(this.blinky.sprite.y/16);
+	console.log('ini', pacman_x, pacman_y, blinky_x, blinky_y);
+	this.blinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	this.pinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	this.inky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	this.clyde.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+
 	
-
-
 }
 
 
 Scene.prototype.update = function(deltaTime)
 {
+	contador = contador + 1;
+	// console.log(contador)
+	if (contador == 8){
+		var pacman_x = Math.floor(this.pacmanSprite.x/16);
+		var pacman_y = Math.floor(this.pacmanSprite.y/16);
+		var blinky_x = Math.floor(this.blinky.sprite.x/16);
+		var blinky_y = Math.floor(this.blinky.sprite.y/16);
+
+		// recalcula CHASE target_tile cada 2 tiles
+		this.blinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+		this.pinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+		this.inky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+		this.clyde.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	
+		contador = 0;
+	}
+
 
 	// Keep track of time
 	this.currentTime += deltaTime;
@@ -361,10 +389,9 @@ Scene.prototype.eat_power_pellet = function(){
 }
 
 Scene.prototype.eat_dot = function(direction, xpos, ypos){
-	x = Math.floor(xpos/16)// +1;
-	y = Math.floor(ypos/16)// -2;
+	x = Math.floor(xpos/16);
+	y = Math.floor(ypos/16);
 
-	console.log(x + " " + y)
 
 	switch(direction){
 		
