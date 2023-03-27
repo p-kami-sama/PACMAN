@@ -101,26 +101,22 @@ Phantom.prototype.set_target_tile = function (x, y, is_scared=false, tilemap)
         switch (this.actual_direction){
             case 'left':
                 if ( [0, 45, 46, 48].includes( tilemap.collisionRight(this.sprite) )  ){
-                    this.sprite.setAnimation(1); // right
                     this.actual_direction = 'right';
                 };
                 
                 break;
             case 'right':
                 if ( [0, 45, 46, 48].includes( tilemap.collisionLeft(this.sprite) )  ){
-                    this.sprite.setAnimation(0); // left
                     this.actual_direction = 'left';
                 };
                 break;
             case 'up':
                 if ( [0, 45, 46, 48].includes( tilemap.collisionDown(this.sprite) )  ){
-                    this.sprite.setAnimation(3); // down
                     this.actual_direction = 'down';
                 };
                 break;
             case 'down':
                 if ( [0, 45, 46, 48].includes( tilemap.collisionUp(this.sprite) )  ){
-                    this.sprite.setAnimation(2); // up
                     this.actual_direction = 'up';
                 };
                 break;
@@ -276,7 +272,7 @@ Phantom.prototype.set_new_state = function(new_state, tilemap, pacman_x, pacman_
 
         break;
         case PhantomState.FRIGHTENED:
-            this.sset_FRIGHTENED(new_state, tilemap);
+            this.set_FRIGHTENED(new_state, tilemap);
         break;
     };
 
@@ -284,6 +280,7 @@ Phantom.prototype.set_new_state = function(new_state, tilemap, pacman_x, pacman_
 
 Phantom.prototype.set_FRIGHTENED = function(new_state, tilemap){
     this.state = new_state;
+    this.sprite.setAnimation(4);
     switch (this.name){
         case 'blinky':
             this.set_target_tile(25, 0, true, tilemap);
