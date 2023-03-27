@@ -397,8 +397,6 @@ Phantom.prototype.set_CHASE = function(new_state, tilemap, pacman_x, pacman_y, p
 Phantom.prototype.inky_target = function(pacman_x, pacman_y, pacman_dir, blinky_x, blinky_y) {
     var target_x = pacman_x;
     var target_y = pacman_y;
-    // Math.floor(this.sprite.x) + (pacman_x - blinky_x) * 2;
-    // Math.floor(this.sprite.y) + (pacman_y - blinky_y) * 2;
     switch (pacman_dir){
         case "left":
             target_x -= 2;
@@ -428,5 +426,7 @@ Phantom.prototype.inky_target = function(pacman_x, pacman_y, pacman_dir, blinky_
 
 
 
-
+Phantom.prototype.set_animation_twinkle = function() {
+    this.sprite.setAnimation(5);     //5 es el parpadeo para cuando la animación va a terminar
+}
 
