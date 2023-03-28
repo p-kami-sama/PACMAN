@@ -63,7 +63,7 @@ Tilemap.prototype.collisionUp = function(sprite)
 {
 	var x = Math.floor((sprite.x - this.basePos[0] + (sprite.box.min[0] + sprite.box.max[0]) / 2) / this.tileSize[0]);
 	var y = Math.floor((sprite.y - this.basePos[1] + sprite.box.min[1]) / this.tileSize[1]);
-	
+
 	return tileId = this.map.layers[0].data[y * this.map.width + x];
 }
 
@@ -74,9 +74,3 @@ Tilemap.prototype.collisionDown = function(sprite)
 	
 	return tileId = this.map.layers[0].data[y * this.map.width + x];
 }
-
-
-
-
-
-
