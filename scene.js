@@ -26,6 +26,8 @@ function Scene()
 	this.tilesheetBlue = new Texture("imgs/blue_tilesheet.png");
 	this.tilesheetGrey = new Texture("imgs/grey_tilesheet.png");
 
+	this.pacmanLogo = new Texture("imgs/logo.png");
+
 	// Loading spritesheet
 	this.pacman_tilesheet = new Texture("imgs/pacman.png");
 	this.fruit_tilesheet = new Texture("imgs/fruits.png");
@@ -68,7 +70,7 @@ Scene.prototype.init = function(){
 	// Create tilemap
 	if (this.stateGame!=4)
 		this.map = new Tilemap(this.tilesheetBlue, [16, 16], [16, 3], [0, 48], structuredClone(MAPA1));
-
+	
 	// Set Pacman inital animation
 	this.pacmanSprite.setAnimation(PACMAN_EAT_RIGHT);
 
@@ -103,7 +105,7 @@ Scene.prototype.init = function(){
 		this.score = 0
 	}
 	else{
-		this.stateGame = 0
+		this.stateGame = -1
 	}
 	
 	
@@ -143,8 +145,12 @@ Scene.prototype.update = function(deltaTime)
 
 	this.check_tricks()
 		
-	
-	if (this.stateGame==0){// Intro
+	if (this.stateGame==-1){//Menu
+		if(keyboard[32]){
+			this.stateGame=0
+		}
+	}
+	else if (this.stateGame==0){// Intro
 		if (interacted){
 			this.introSound.play()
 			if(this.currentTime>4000){
@@ -418,6 +424,11 @@ Scene.prototype.update = function(deltaTime)
 			this.init()	
 		}
 	}
+	else if (this.stateGame==5){// Game over
+		if((this.currentTime-this.auxTime)>3000){
+			this.stateGame=-1
+		}
+	}
 	
 	// Update sprite
 	this.pacmanSprite.update(deltaTime);
@@ -441,52 +452,82 @@ Scene.prototype.draw = function ()
 	// Draw highscore
 	this.draw_scoreboard(context);
 
-	// End game blink
-	if (this.stateGame==2){
-		if (500>(this.currentTime % 1000) && (this.currentTime % 1000)>0){
-			this.map.tilesheet = this.tilesheetGrey
-		}
-		else if (1000>(this.currentTime % 1000) && (this.currentTime % 1000)>500)
-		{
-			this.map.tilesheet = this.tilesheetBlue	
-		}
-	}
+	if(this.stateGame==-1){//Draw menu
+		//Logo
+		context.drawImage(this.pacmanLogo.img, 64, 128);
 
-	// Draw tilemap
-	this.map.draw();
-
-	// READY Message
-	if (this.stateGame==0){
-		context.fillStyle = "Yellow";
-		var text = "READY!";
+		var text = "PUSH SPACE KEY";
 		var textSize = context.measureText(text);
-		context.fillText(text, 224 - textSize.width/2, 16*17);
-		context.fillStyle = "White";
-	}
+		context.fillText(text, 224 - textSize.width/2, 74+128+96);
 
-	if(this.stateGame==5){
-		context.fillStyle = "Red";
-		var text = "GAME OVER";
+		var text = "UPC";
 		var textSize = context.measureText(text);
-		context.fillText(text, 224 - textSize.width/2, 16*17);
-		context.fillStyle = "White";
+		context.fillText(text, 224 - textSize.width/2, 74+128+96+96);
+
+		var text = "Carlos A. Castano";
+		var textSize = context.measureText(text);
+		context.fillText(text, 224 - textSize.width/2, 74+128+96+96+96);
+
+		var text = "Paul Gonzales";
+		var textSize = context.measureText(text);
+		context.fillText(text, 224 - textSize.width/2, 74+128+96+96+96+32);
+
+		
+
 	}
 	else{
-		// Draw fruit
-		this.draw_fruit();
+		// Draw tile map	
+		this.map.draw();
 		
-		// Draw pacman sprite
-		this.pacmanSprite.draw()
+		// READY Message
+		if (this.stateGame==0){
+			context.fillStyle = "Yellow";
+			var text = "READY!";
+			var textSize = context.measureText(text);
+			context.fillText(text, 224 - textSize.width/2, 16*17);
+			context.fillStyle = "White";
+		}
 
-		// Draw ghosts sprites
-		this.blinky.sprite.draw();
-		this.pinky.sprite.draw();
-		this.inky.sprite.draw();
-		this.clyde.sprite.draw();
+		// End game blink
+		if (this.stateGame==2){
+			if (500>(this.currentTime % 1000) && (this.currentTime % 1000)>0){
+				this.map.tilesheet = this.tilesheetGrey
+			}
+			else if (1000>(this.currentTime % 1000) && (this.currentTime % 1000)>500)
+			{
+				this.map.tilesheet = this.tilesheetBlue	
+			}
+		}
 
-		// Draw bottom
-		this.draw_bottom(context, canvas)
-	}
+		// GAME OVER message
+		if(this.stateGame==5){
+			context.fillStyle = "Red";
+			var text = "GAME OVER";
+			var textSize = context.measureText(text);
+			context.fillText(text, 224 - textSize.width/2, 16*17);
+			context.fillStyle = "White";
+		}
+		else{
+			// Draw fruit
+			this.draw_fruit();
+			
+			// Draw pacman sprite
+			this.pacmanSprite.draw()
+
+			// Draw ghosts sprites
+			this.blinky.sprite.draw();
+			this.pinky.sprite.draw();
+			this.inky.sprite.draw();
+			this.clyde.sprite.draw();
+
+			// Draw bottom
+			this.draw_bottom(context, canvas)
+		}
+	} 
+
+	
+
+	
 
 	
 }
