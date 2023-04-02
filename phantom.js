@@ -145,48 +145,59 @@ Phantom.prototype.set_target_tile = function (x, y, is_scared=false, tilemap)
 
 
 
-Phantom.prototype.supermove = function (deltaTime, tilemap, pacmanSprite, hardness_settings)
+Phantom.prototype.supermove = function (deltaTime, tilemap, pacmanSprite, hardness_settings, level)
 {
+    var movimiento_pendiente = Math.floor(this.speed + this.acumulate_speed);
+    
     //Si está en el tunel
-    //CONTINUAR
-    if ( (Math.floor(this.sprite.y /16) == 13) &&
-            (Math.floor(this.sprite.x /16) <= 4) &&
-            (Math.floor(this.sprite.x /16) >= 24) ){
-        //this.speed = 
-        //NOTA
+    if ( (Math.floor(this.sprite.y /16) == 13) && (
+            (Math.floor(this.sprite.x /16) <= 3) ||
+            (Math.floor(this.sprite.x /16) >= 24) ) ){
+
+            var speed_aux = 2 * hardness_settings["ghost_tunel"][level-1] // In pixels per frame
+            movimiento_pendiente = Math.floor(speed_aux + this.acumulate_speed);
+            this.acumulate_speed = (this.speed_aux + this.acumulate_speed) - Math.floor(this.speed_aux + this.acumulate_speed);
     }
     else{
-
+        this.acumulate_speed = (this.speed + this.acumulate_speed) - Math.floor(this.speed + this.acumulate_speed);
     }
 
-    var movimiento_pendiente = Math.floor(this.speed + this.acumulate_speed);
-    this.acumulate_speed = (this.speed + this.acumulate_speed) - Math.floor(this.speed + this.acumulate_speed);
+    if (movimiento_pendiente == 0){
+        movimiento_pendiente = 1;
+        this.acumulate_speed = 0.0;
+    }
+    
     while ((0 < movimiento_pendiente)){
-        // Fantasma choca con PACMAN
-        //if (this.sprite.collisionLeft(pacmanSprite)  ){
-
-        //}
+        // REPARAR TELETRANSPORTE TUNEL
+        if ( (this.sprite.x == 16) && (this.actual_direction == 'left') ){
+            this.sprite.x = 28*16-16;   // afinar
+        }
+        else if ( (this.sprite.x == 28*16-16) && (this.actual_direction == 'right') ){
+            this.sprite.x = 0+16; // fracaso absoluto
+        }
 
         // si está en 8, 8 -> busca ir por grietas
         if ( ( ((this.sprite.x%16) == 8) && ((this.sprite.y%16) == 8) )  ){
             var new_dir =this.obtener_nueva_direccion(this.actual_direction, tilemap);
             this.actual_direction = new_dir;
 
-            switch (this.actual_direction && (this.state != PhantomState.FRIGHTENED)){
-                case 'left':
-                    // this.sprite.x -= this.sprite.x % 16
-                    this.sprite.setAnimation(0)
-                    break;
-                case 'right':
-                    this.sprite.setAnimation(1)
-                    break;
-                case 'up':
-                    this.sprite.setAnimation(2)
-                    break;
-                case 'down':
-                    this.sprite.setAnimation(3)
-                    break;
-            };
+            if (this.state != PhantomState.FRIGHTENED){
+                switch (this.actual_direction){
+                    case 'left':
+                        // this.sprite.x -= this.sprite.x % 16
+                        this.sprite.setAnimation(0);
+                        break;
+                    case 'right':
+                        this.sprite.setAnimation(1);
+                        break;
+                    case 'up':
+                        this.sprite.setAnimation(2);
+                        break;
+                    case 'down':
+                        this.sprite.setAnimation(3);
+                        break;
+                };
+            }
 
 
         }

@@ -6,6 +6,17 @@ tile 46 dot
 tile 48 powerpellet
 */
 
+/*State game
+-1 menu
+0 ready!
+1 gameplay
+2 win
+4 lose	muere pacman
+5 game over
+
+6 muere fantasma
+*/
+
 const PACMAN_STOP_LEFT = 0;
 const PACMAN_STOP_RIGHT = 1;
 const PACMAN_STOP_UP = 2;
@@ -32,6 +43,7 @@ function Scene()
 	this.pacman_tilesheet = new Texture("imgs/pacman.png");
 	this.fruit_tilesheet = new Texture("imgs/fruits.png");
 	this.scoreFruit_tilesheet = new Texture("imgs/score_fruits.png");
+	this.scoreGhost_tilesheet = new Texture("imgs/score_ghosts.png");
 
 	// Prepare sounds
 	this.wakawakaSound1 = AudioFX('sounds/munch_1.wav');
@@ -47,29 +59,48 @@ function Scene()
 	// Create Pacman
 	this.create_pacman()
 
-	this.score = 0
 	this.highscore = 1000
-	this.level = 0
 	this.maxSpeed = 2
-	this.auxState = 0
-
-	this.pacmanLives = 1
-
 	this.hardness_settings = structuredClone(hardness_settings)
-
 	this.win_condition = 284//284
+
+	this.start_game()
+}
+
+Scene.prototype.start_game = function(){
+
+	this.score = 0
+	this.level = 0
+	this.stateGame = 1
+	this.pacmanLives = 2
 
 	// TRICKS
 	this.GodMode = false
 
 	this.init()
+
 }
 
 Scene.prototype.init = function(){
 
+
 	// Create tilemap
 	if (this.stateGame!=4)
 		this.map = new Tilemap(this.tilesheetBlue, [16, 16], [16, 3], [0, 48], structuredClone(MAPA1));
+
+	if (this.stateGame==4){//Pacman dies
+		this.pacmanLives -= 1
+		if(this.pacmanLives==0){
+			this.stateGame = 5 // Game over
+		}
+		else{
+			this.stateGame = 0
+		}
+	}
+	else{
+		this.level += 1;
+		this.dotsNumber = 0
+	}
 	
 	// Set Pacman inital animation
 	this.pacmanSprite.setAnimation(PACMAN_EAT_RIGHT);
@@ -91,23 +122,7 @@ Scene.prototype.init = function(){
 
 	this.checkBonus = 0
 	this.checkGhostEat = false
-	
-	if (this.stateGame==4){
-		this.pacmanLives -= 1
-	}
-	else{
-		this.level += 1;
-		this.dotsNumber = 0
-	}
 
-	if(this.pacmanLives==0){
-		this.stateGame = 5 // Game over
-		this.score = 0
-	}
-	else{
-		this.stateGame = -1
-	}
-	
 	
 	this.speedPacman = this.maxSpeed*this.hardness_settings["pacman_speed"][this.level-1] // In pixels per frame
 
@@ -134,12 +149,15 @@ Scene.prototype.init = function(){
 	this.inky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
 	this.clyde.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
 
+	this.ghost_ate = 0;	// cuenta los fantasmas comidos por pacman
+	this.checkGhostBonus = 0; // se usa en caso de que pacman coma a un fantasma
+
 }
 
 Scene.prototype.update = function(deltaTime)
 {
 	// Keep track of time
-	if (interacted){
+	if (interacted && this.stateGame!=.1){
 		this.currentTime += deltaTime;
 	}
 
@@ -182,6 +200,10 @@ Scene.prototype.update = function(deltaTime)
 			this.pinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
 			this.inky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
 			this.clyde.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+			this.ghost_ate = 0;
+		}
+		else if(this.checkGhostEat){
+			this.pacman_ghosts_touch()
 		}
 
 		// Eat fruit
@@ -208,6 +230,22 @@ Scene.prototype.update = function(deltaTime)
 			if((this.currentTime-this.auxTimeFruit)>2000){
 				this.auxTimeFruit = 0
 				this.checkBonus = 0
+			}
+		}
+
+		if(this.checkGhostBonus == 1){ // pacman a comido un fantasma
+			var points_wined_eating_ghost = 200 *Math.pow(2, this.ghost_ate);
+			this.ghost_ate += 1;
+			this.score += points_wined_eating_ghost;
+			this.checkGhostBonus = 2
+			this.auxTime=this.currentTime
+			
+			//aqui poner numerito —> points_wined_eating_ghost
+		}
+		else if(this.checkGhostBonus == 2){
+			if ((this.currentTime-this.auxTimeGhostEat)>2000){
+				this.auxTime=this.currentTime
+				this.stateGame = 6
 			}
 		}
 
@@ -265,7 +303,7 @@ Scene.prototype.update = function(deltaTime)
 				this.pacmanSprite.setAnimation(PACMAN_CADAVER);
 			}
 
-			else if (keyboard[71]){
+			else if (keyboard[71]){ // tecla G
 				this.eat_power_pellet()
 			}
 	
@@ -290,7 +328,7 @@ Scene.prototype.update = function(deltaTime)
 			}
 			else{
 				this.getTilepos(this.pacmanSprite.x, this.pacmanSprite.y)
-				this.eat_dot("left", this.pacmanSprite.x, this.pacmanSprite.y)
+				this.eat_dot(this.pacmanSprite.x, this.pacmanSprite.y)
 				
 			}
 			break;
@@ -307,7 +345,7 @@ Scene.prototype.update = function(deltaTime)
 			}
 			else{
 				this.getTilepos(this.pacmanSprite.x, this.pacmanSprite.y)
-				this.eat_dot("up", this.pacmanSprite.x, this.pacmanSprite.y)
+				this.eat_dot(this.pacmanSprite.x, this.pacmanSprite.y)
 			}
 			break;
 	
@@ -328,7 +366,7 @@ Scene.prototype.update = function(deltaTime)
 			}
 			else{
 				this.getTilepos(this.pacmanSprite.x, this.pacmanSprite.y)
-				this.eat_dot("right", this.pacmanSprite.x, this.pacmanSprite.y)
+				this.eat_dot(this.pacmanSprite.x, this.pacmanSprite.y)
 			}
 			break;
 	
@@ -344,7 +382,7 @@ Scene.prototype.update = function(deltaTime)
 			}
 			else{
 				this.getTilepos(this.pacmanSprite.x, this.pacmanSprite.y)
-				this.eat_dot("down", this.pacmanSprite.x, this.pacmanSprite.y)
+				this.eat_dot(this.pacmanSprite.x, this.pacmanSprite.y)
 			}
 			break;
 	
@@ -397,14 +435,15 @@ Scene.prototype.update = function(deltaTime)
 	
 		}
 
-		this.blinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings);
-		this.pinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings);
-		this.inky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings);
-		this.clyde.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings);
+		this.blinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
+		this.pinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
+		this.inky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
+		this.clyde.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
 	}
 	else if (this.stateGame==2){// Win level
 
 		if ((this.currentTime-this.auxTime)>3000){
+			this.stateGame = 0
 			this.init()
 		}
 	}
@@ -426,9 +465,16 @@ Scene.prototype.update = function(deltaTime)
 	}
 	else if (this.stateGame==5){// Game over
 		if((this.currentTime-this.auxTime)>3000){
-			this.stateGame=-1
+			this.start_game()
 		}
 	}
+	else if (this.stateGame==6){
+		if ((this.currentTime-this.auxTime)>2000){
+			this.stateGame = 4
+		}
+		
+	}
+
 	
 	// Update sprite
 	this.pacmanSprite.update(deltaTime);
@@ -514,6 +560,18 @@ Scene.prototype.draw = function ()
 			// Draw pacman sprite
 			this.pacmanSprite.draw()
 
+			// Draw ghost score
+			if(this.ghost_ate==1)
+				context.drawImage(this.scoreGhost_tilesheet.img, 0, 0, 16, 16, 208, 344, 32, 32);
+			else if(this.ghost_ate==2)
+				context.drawImage(this.scoreGhost_tilesheet.img, 16, 0, 16, 16, 208, 344, 32, 32);
+			else if(this.ghost_ate==3)
+				context.drawImage(this.scoreGhost_tilesheet.img, 32, 0, 16, 16, 208, 344, 32, 32);
+			else if(this.ghost_ate==4)
+				context.drawImage(this.scoreGhost_tilesheet.img, 48, 0, 16, 16, 208, 344, 32, 32);
+			
+			
+
 			// Draw ghosts sprites
 			this.blinky.sprite.draw();
 			this.pinky.sprite.draw();
@@ -524,11 +582,6 @@ Scene.prototype.draw = function ()
 			this.draw_bottom(context, canvas)
 		}
 	} 
-
-	
-
-	
-
 	
 }
 
@@ -562,7 +615,12 @@ Scene.prototype.make_cornering = function(newDirection, actualDirection){
 		
 		if (centros["centroTileX"]<centros["centroPacmanX"]){
 			this.pacmanDirectionCornering = "left"
-			this.eat_dot("left", centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
+			this.eat_dot(centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
+			return "cornering";
+		}
+		else if (centros["centroTileX"]>centros["centroPacmanX"]){
+			this.pacmanDirectionCornering = "right"
+			this.eat_dot(centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
 			return "cornering";
 		}
 	}
@@ -570,7 +628,12 @@ Scene.prototype.make_cornering = function(newDirection, actualDirection){
 	else if((newDirection=='up' && actualDirection=='right') || (newDirection=='down' && actualDirection=='right')){
 		if (centros["centroTileX"]>centros["centroPacmanX"]){
 			this.pacmanDirectionCornering = "right"
-			this.eat_dot("left", centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
+			this.eat_dot(centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
+			return "cornering";
+		}
+		else if (centros["centroTileX"]<centros["centroPacmanX"]){
+			this.pacmanDirectionCornering = "left"
+			this.eat_dot(centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
 			return "cornering";
 		}
 	}
@@ -578,7 +641,12 @@ Scene.prototype.make_cornering = function(newDirection, actualDirection){
 	else if((newDirection=='left' && actualDirection=='up') || (newDirection=='right' && actualDirection=='up')){
 		if (centros["centroTileY"]<centros["centroPacmanY"]){
 			this.pacmanDirectionCornering = "up"
-			this.eat_dot("left", centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
+			this.eat_dot(centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
+			return "cornering";
+		}
+		else if (centros["centroTileY"]>centros["centroPacmanY"]){
+			this.pacmanDirectionCornering = "down"
+			this.eat_dot(centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
 			return "cornering";
 		}
 	}
@@ -586,7 +654,12 @@ Scene.prototype.make_cornering = function(newDirection, actualDirection){
 	else if((newDirection=='left' && actualDirection=='down') || (newDirection=='right' && actualDirection=='down')){
 		if (centros["centroTileY"]>centros["centroPacmanY"]){
 			this.pacmanDirectionCornering = "down"
-			this.eat_dot("left", centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
+			this.eat_dot(centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
+			return "cornering";
+		}
+		else if (centros["centroTileY"]<centros["centroPacmanY"]){
+			this.pacmanDirectionCornering = "up"
+			this.eat_dot(centros["centroPacmanX"]-16, centros["centroPacmanY"]-16)
 			return "cornering";
 		}
 	}
@@ -668,7 +741,7 @@ Scene.prototype.getTilepos = function(xpos, ypos){
 	console.log(pixelx + ", " + pixely)
 }
 
-Scene.prototype.eat_dot = function(direction, xpos, ypos){
+Scene.prototype.eat_dot = function(xpos, ypos){
 	//x = Math.floor(xpos/16)+1;
 	//y = Math.floor(ypos/16)-2;
 	x = Math.floor((xpos+16)/16);
@@ -921,11 +994,21 @@ Scene.prototype.pacman_ghosts_touch = function(){
 	var pacman_y = Math.floor((this.pacmanSprite.y + 16)/16)
 
 	if ((pacman_x == blinky_x) && (pacman_y == blinky_y)){
-		console.log("murio")
-		this.stateGame=4
-		this.death1Sound.play()
-		this.mainSound.stop()
-		this.auxTime=this.currentTime
+		console.log(this.blinky.state)
+		if (this.blinky.state == PhantomState.FRIGHTENED){
+			this.checkGhostBonus = 1;
+			this.blinky.sprite.x = 16*14
+			this.blinky.sprite.y = 16*16
+			console.log("FRIGHTENED")
+		}
+		else{
+			console.log("murio")
+			this.stateGame=4
+			this.death1Sound.play()
+			this.mainSound.stop()
+			this.auxTime=this.currentTime
+		}
+
 	}
 	else if ((pacman_x == pinky_x) && (pacman_y == pinky_y)){
 		console.log("murio")
