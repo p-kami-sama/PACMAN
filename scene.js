@@ -41,9 +41,11 @@ function Scene()
 
 	// Loading spritesheet
 	this.pacman_tilesheet = new Texture("imgs/pacman.png");
+	this.pacman_die_tilesheet = new Texture("imgs/pacman_die.png");
 	this.fruit_tilesheet = new Texture("imgs/fruits.png");
 	this.scoreFruit_tilesheet = new Texture("imgs/score_fruits.png");
 	this.scoreGhost_tilesheet = new Texture("imgs/score_ghosts.png");
+	this.fantasmas_tilesheet = new Texture("imgs/fantasmas.png");
 
 	// Prepare sounds
 	this.wakawakaSound1 = AudioFX('sounds/munch_1.wav');
@@ -73,6 +75,7 @@ Scene.prototype.start_game = function(){
 	this.level = 0
 	this.stateGame = 1
 	this.pacmanLives = 2
+	this.selectMenu = 0
 
 	// TRICKS
 	this.GodMode = false
@@ -122,8 +125,13 @@ Scene.prototype.init = function(){
 
 	this.checkBonus = 0
 	this.checkGhostEat = false
+	this.pacmanDieKeyFrame = 0
 
-	
+	this.blinkyEat = false
+	this.pinkyEat = false
+	this.inkyEat = false
+	this.clydeEat = false
+
 	this.speedPacman = this.maxSpeed*this.hardness_settings["pacman_speed"][this.level-1] // In pixels per frame
 
 	//  Posicion inicial donde se pintan los fantasmas
@@ -157,15 +165,34 @@ Scene.prototype.init = function(){
 Scene.prototype.update = function(deltaTime)
 {
 	// Keep track of time
-	if (interacted && this.stateGame!=.1){
+	if (interacted){
 		this.currentTime += deltaTime;
 	}
 
 	this.check_tricks()
-		
-	if (this.stateGame==-1){//Menu
-		if(keyboard[32]){
-			this.stateGame=0
+	
+	if (this.stateGame==-2){//Instructions
+		if(keyboard[32] && this.currentTime > 500){
+			this.stateGame = -1
+			this.selectMenu = 0
+			this.currentTime = 0
+		}
+	}
+	else if (this.stateGame==-1 && interacted){//Menu
+		if (keyboard[38]){
+			this.selectMenu = 0
+		}
+		else if(keyboard[40]){
+			this.selectMenu = 1
+		}
+		if(keyboard[32] && this.currentTime > 500){
+			this.currentTime = 0
+			if(this.selectMenu==0){
+				this.stateGame = 0;
+			}
+			else{
+				this.stateGame = -2
+			}
 		}
 	}
 	else if (this.stateGame==0){// Intro
@@ -185,10 +212,10 @@ Scene.prototype.update = function(deltaTime)
 
 			if (!this.GodMode) this.pacman_ghosts_touch()
 
-			this.blinky.speed = this.maxSpeed*this.hardness_settings["pacman_speed"][this.level-1] // In pixels per frame
-			this.pinky.speed = this.maxSpeed*this.hardness_settings["pacman_speed"][this.level-1] // In pixels per frame
-			this.inky.speed = this.maxSpeed*this.hardness_settings["pacman_speed"][this.level-1] // In pixels per frame
-			this.clyde.speed = this.maxSpeed*this.hardness_settings["pacman_speed"][this.level-1] // In pixels per frame
+			this.blinky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
+			this.pinky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
+			this.inky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
+			this.clyde.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
 
 			var pacman_x = Math.floor(this.pacmanSprite.x/16);
 			var pacman_y = Math.floor(this.pacmanSprite.y/16);
@@ -204,6 +231,36 @@ Scene.prototype.update = function(deltaTime)
 		}
 		else if(this.checkGhostEat){
 			this.pacman_ghosts_touch()
+
+			var pacman_x = Math.floor(this.pacmanSprite.x/16);
+			var pacman_y = Math.floor(this.pacmanSprite.y/16);
+			var blinky_x = Math.floor(this.blinky.sprite.x/16);
+			var blinky_y = Math.floor(this.blinky.sprite.y/16);
+			
+			
+
+			if(this.blinkyEat){
+				
+				this.blinky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
+				this.blinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+				console.log(this.blinky.state)
+			}
+			if(this.pinkyEat){
+				this.pinky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
+				this.pinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+				console.log(this.pinky.state)
+			}
+			if(this.inkyEat){
+				this.inky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
+				this.inky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+				console.log(this.inky.state)
+			}
+			if(this.clydeEat){
+				this.clyde.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
+				this.clyde.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+				console.log(this.clyde.state)
+			}
+			
 		}
 
 		// Eat fruit
@@ -233,21 +290,18 @@ Scene.prototype.update = function(deltaTime)
 			}
 		}
 
-		if(this.checkGhostBonus == 1){ // pacman a comido un fantasma
-			var points_wined_eating_ghost = 200 *Math.pow(2, this.ghost_ate);
+		if(this.checkGhostBonus == 1){ // pacman ha comido un fantasma
+			var points_wined_eating_ghost = 200 * Math.pow(2, this.ghost_ate);
 			this.ghost_ate += 1;
 			this.score += points_wined_eating_ghost;
 			this.checkGhostBonus = 2
 			this.auxTime=this.currentTime
+
+			this.stateGame = 6
 			
 			//aqui poner numerito —> points_wined_eating_ghost
 		}
-		else if(this.checkGhostBonus == 2){
-			if ((this.currentTime-this.auxTimeGhostEat)>2000){
-				this.auxTime=this.currentTime
-				this.stateGame = 6
-			}
-		}
+		
 
 		// Ghost eating time
 		if (this.checkGhostEat && ((this.currentTime-this.auxTimeGhostEat)>1000*this.hardness_settings["fright_time"][this.level-1])){
@@ -449,6 +503,9 @@ Scene.prototype.update = function(deltaTime)
 	}
 	else if (this.stateGame==4){// Lose level
 		var timeElapsed = this.currentTime-this.auxTime
+		if (timeElapsed % (3700/12) < 17){
+			this.pacmanDieKeyFrame += 32
+		}
 		if (timeElapsed>3000 && this.auxState==0){
 			this.death2Sound.play()
 			this.auxState = 1
@@ -469,16 +526,19 @@ Scene.prototype.update = function(deltaTime)
 		}
 	}
 	else if (this.stateGame==6){
-		if ((this.currentTime-this.auxTime)>2000){
-			this.stateGame = 4
+		if ((this.currentTime-this.auxTime)>3000){
+			this.stateGame = 1
+
+			this.blinkyEat = false
+			this.pinkyEat = false
+			this.inkyEat = false
+			this.clydeEat = false
 		}
 		
 	}
 
-	
 	// Update sprite
 	this.pacmanSprite.update(deltaTime);
-
 }
 
 Scene.prototype.draw = function ()
@@ -495,33 +555,54 @@ Scene.prototype.draw = function ()
 	// Set text color
 	context.fillStyle = "White";
 
-	// Draw highscore
-	this.draw_scoreboard(context);
+	if(this.stateGame==-2){//Draw Instructions
+		this.draw_instructions(context, canvas)		
+	}
+	else if(this.stateGame==-1){//Draw menu
 
-	if(this.stateGame==-1){//Draw menu
+		// Draw highscore
+		this.draw_scoreboard(context);
+
 		//Logo
 		context.drawImage(this.pacmanLogo.img, 64, 128);
 
-		var text = "PUSH SPACE KEY";
-		var textSize = context.measureText(text);
-		context.fillText(text, 224 - textSize.width/2, 74+128+96);
+		if(this.selectMenu==0){
+			var text = "> START GAME";
+			var textSize = context.measureText("START GAME");
+			context.fillText(text, 224 - 32 - textSize.width/2, 298);
 
-		var text = "UPC";
+			var text = "INSTRUCTIONS";
+			var textSize = context.measureText("INSTRUCTIONS");
+			context.fillText(text, 224 - textSize.width/2, 298+32);
+		} 
+		else{
+			var text = "START GAME";
+			var textSize = context.measureText("START GAME");
+			context.fillText(text, 224 - textSize.width/2, 298);
+
+			var text = "> INSTRUCTIONS";
+			var textSize = context.measureText("INSTRUCTIONS");
+			context.fillText(text, 224 - 32 - textSize.width/2,298+32);
+		} 
+
+		var text = "UPC - FIB - MEI - JC";
 		var textSize = context.measureText(text);
-		context.fillText(text, 224 - textSize.width/2, 74+128+96+96);
+		context.fillText(text, 224 - textSize.width/2, 490-32);
 
 		var text = "Carlos A. Castano";
 		var textSize = context.measureText(text);
-		context.fillText(text, 224 - textSize.width/2, 74+128+96+96+96);
+		context.fillText(text, 224 - textSize.width/2, 490);
 
 		var text = "Paul Gonzales";
 		var textSize = context.measureText(text);
-		context.fillText(text, 224 - textSize.width/2, 74+128+96+96+96+32);
-
-		
+		context.fillText(text, 224 - textSize.width/2, 490+32);
 
 	}
 	else{
+
+		// Draw highscore
+		this.draw_scoreboard(context);
+
 		// Draw tile map	
 		this.map.draw();
 		
@@ -557,8 +638,34 @@ Scene.prototype.draw = function ()
 			// Draw fruit
 			this.draw_fruit();
 			
+			
+
 			// Draw pacman sprite
-			this.pacmanSprite.draw()
+			if(this.stateGame == 4){//Lose
+				context.translate(this.pacmanSprite.x, this.pacmanSprite.y)
+				if(this.pacmanDirection=='up'){
+					context.drawImage(this.pacman_die_tilesheet.img, this.pacmanDieKeyFrame, 0, 32, 32, 0, 0, 32, 32);
+				}
+				else if(this.pacmanDirection=='down'){
+					context.rotate(3.14)
+					context.drawImage(this.pacman_die_tilesheet.img, this.pacmanDieKeyFrame, 0, 32, 32, -32, -32, 32, 32);
+					context.rotate(-3.14)
+				}
+				else if(this.pacmanDirection=='left'){
+					context.rotate(-3.14/2)
+					context.drawImage(this.pacman_die_tilesheet.img, this.pacmanDieKeyFrame, 0, 32, 32, -32, 0, 32, 32);
+					context.rotate(3.14/2)
+				}
+				else if(this.pacmanDirection=='right'){
+					context.rotate(3.14/2)
+					context.drawImage(this.pacman_die_tilesheet.img, this.pacmanDieKeyFrame, 0, 32, 32, 0, -32, 32, 32);
+					context.rotate(-3.14/2)
+				}
+				context.translate(-this.pacmanSprite.x, -this.pacmanSprite.y)
+			}
+			else{
+				this.pacmanSprite.draw()
+			}
 
 			// Draw ghost score
 			if(this.ghost_ate==1)
@@ -571,18 +678,18 @@ Scene.prototype.draw = function ()
 				context.drawImage(this.scoreGhost_tilesheet.img, 48, 0, 16, 16, 208, 344, 32, 32);
 			
 			
-
-			// Draw ghosts sprites
-			this.blinky.sprite.draw();
-			this.pinky.sprite.draw();
-			this.inky.sprite.draw();
-			this.clyde.sprite.draw();
+			if(this.stateGame != 4){
+				// Draw ghosts sprites
+				this.blinky.sprite.draw();
+				this.pinky.sprite.draw();
+				this.inky.sprite.draw();
+				this.clyde.sprite.draw();
+			}
 
 			// Draw bottom
 			this.draw_bottom(context, canvas)
 		}
 	} 
-	
 }
 
 Scene.prototype.check_center = function(){
@@ -977,6 +1084,111 @@ Scene.prototype.draw_bottom = function(context, canvas){
 		
 }
 
+Scene.prototype.draw_instructions = function(context, canvas){
+	context.drawImage(this.pacmanLogo.img, 64, 0);
+
+		context.fillStyle = "Red";
+		var text = "INSTRUCTIONS";
+		var textSize = context.measureText(text);
+		context.fillText(text, 224 - textSize.width/2, 96);
+		context.fillStyle = "White";
+
+		//Avoid
+		var text = "AVOID!!";
+		var textSize = context.measureText(text);
+		context.fillText(text, 224/2 - textSize.width/2, 120);
+		context.drawImage(this.pacman_tilesheet.img, 32, 32, 32, 32, 32, 128, 32, 32);
+
+		context.drawImage(this.fantasmas_tilesheet.img, 96, 0, 32, 32, 64, 128, 32, 32);
+		context.drawImage(this.fantasmas_tilesheet.img, 96, 32, 32, 32, 96, 128, 32, 32);
+		context.drawImage(this.fantasmas_tilesheet.img, 96, 64, 32, 32, 128, 128, 32, 32);
+		context.drawImage(this.fantasmas_tilesheet.img, 96, 96, 32, 32, 160, 128, 32, 32);
+
+		//Eat
+		var text = "EAT!!";
+		var textSize = context.measureText(text);
+		context.fillText(text, 224*3/2 - textSize.width/2, 120);
+		context.drawImage(this.pacman_tilesheet.img, 32, 0, 32, 32, 256, 128, 32, 32);
+
+		context.drawImage(this.fantasmas_tilesheet.img, 288, 0, 32, 32, 288, 128, 32, 32);
+		context.drawImage(this.fantasmas_tilesheet.img, 288, 0, 32, 32, 320, 128, 32, 32);
+		context.drawImage(this.fantasmas_tilesheet.img, 288, 0, 32, 32, 352, 128, 32, 32);
+		context.drawImage(this.fantasmas_tilesheet.img, 288, 0, 32, 32, 384, 128, 32, 32);
+
+		//Points
+		context.drawImage(this.scoreGhost_tilesheet.img, 0, 0, 16, 16, 288+8, 128+32, 16, 16);
+		context.drawImage(this.scoreGhost_tilesheet.img, 16, 0, 16, 16, 320+8, 128+32, 16, 16);
+		context.drawImage(this.scoreGhost_tilesheet.img, 32, 0, 16, 16, 352+8, 128+32, 16, 16);
+		context.drawImage(this.scoreGhost_tilesheet.img, 48, 0, 16, 16, 384+8, 128+32, 16, 16);
+
+		context.font = "10px emulogic";
+		var text = "You can EAT only for a few seconds"
+		var textSize = context.measureText(text);
+		context.fillText(text, 224 - textSize.width/2, 128+64);
+		var text = "after which they will flash and change back";
+		var textSize = context.measureText(text);
+		context.fillText(text, 224 - textSize.width/2, 128+64+16);
+		
+		context.font = "8px emulogic";
+		//Dots 
+		context.drawImage(this.pacman_tilesheet.img, 32, 0, 32, 32, 112-80, 288-64, 32, 32);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 112-48, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 112-32, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 112-16, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 112, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 112+16, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 112+32, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 112+48, 288-64+8, 16, 16);
+
+		var text = "10 points per dot"
+		var textSize = context.measureText(text);
+		context.fillText(text, 224/2 - textSize.width/2, 288-64+32+16);
+		var text = "Eat all dots to win"
+		var textSize = context.measureText(text);
+		context.fillText(text, 224/2 - textSize.width/2, 288-64+32+16+8);
+		
+		//Power pellets
+		context.drawImage(this.pacman_tilesheet.img, 32, 0, 32, 32, 336-64, 288-64, 32, 32);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 336-32, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 336-16, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-16, 32, 16, 16, 336, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 336+16, 288-64+8, 16, 16);
+		context.drawImage(this.tilesheetBlue.img, 256-48, 32, 16, 16, 336+32, 288-64+8, 16, 16);
+
+		var text = "50 points per power pellet"
+		var textSize = context.measureText(text);
+		context.fillText(text, 224*3/2 - textSize.width/2, 288-64+32+16);
+		var text = "Eat it to eat Ghosts!"
+		var textSize = context.measureText(text);
+		context.fillText(text, 224*3/2 - textSize.width/2, 288-64+32+16+8);
+
+		context.font = "16px emulogic";
+
+		//Fruits
+		var text = "BONUS FRUIT";
+		var textSize = context.measureText(text);
+		context.fillText(text, 224 - textSize.width/2, 320);
+
+		context.font = "10px emulogic";
+		context.fillText("100 POINTS; Level 1", 96, 344);
+		context.fillText("200 POINTS; Level 2", 96, 344+32);
+		context.fillText("500 POINTS; Level 3-4", 96, 344+64);
+		context.fillText("700 POINTS; Level 5-6", 96, 344+96);
+		context.fillText("1000 POINTS; Level 7-8", 96, 344+128);
+		context.fillText("2000 POINTS; Level 9-10", 96, 344+160);
+		context.fillText("3000 POINTS; Level 11-12", 96, 344+192);
+		context.fillText("5000 POINTS; Level 13 onward", 96, 344+224);
+		context.font = "16px emulogic";
+		context.drawImage(this.fruit_tilesheet.img, 0, 0, 16, 16, 32, 320, 32, 32);
+		context.drawImage(this.fruit_tilesheet.img, 16, 0, 16, 16, 32, 320+32, 32, 32);
+		context.drawImage(this.fruit_tilesheet.img, 32, 0, 16, 16, 32, 320+64, 32, 32);
+		context.drawImage(this.fruit_tilesheet.img, 48, 0, 16, 16, 32, 320+96, 32, 32);
+		context.drawImage(this.fruit_tilesheet.img, 64, 0, 16, 16, 32, 320+128, 32, 32);
+		context.drawImage(this.fruit_tilesheet.img, 80, 0, 16, 16, 32, 320+160, 32, 32);
+		context.drawImage(this.fruit_tilesheet.img, 96, 0, 16, 16, 32, 320+192, 32, 32);
+		context.drawImage(this.fruit_tilesheet.img, 112, 0, 16, 16, 32, 320+224, 32, 32);	
+}
+
 Scene.prototype.pacman_ghosts_touch = function(){
 	var blinky_x = Math.floor((this.blinky.sprite.x + 16)/16)
 	var blinky_y = Math.floor((this.blinky.sprite.y + 16)/16)
@@ -997,8 +1209,10 @@ Scene.prototype.pacman_ghosts_touch = function(){
 		console.log(this.blinky.state)
 		if (this.blinky.state == PhantomState.FRIGHTENED){
 			this.checkGhostBonus = 1;
+			this.blinkyEat = true
 			this.blinky.sprite.x = 16*14
 			this.blinky.sprite.y = 16*16
+			this.blinky.state = PhantomState.CHASE
 			console.log("FRIGHTENED")
 		}
 		else{
@@ -1011,25 +1225,53 @@ Scene.prototype.pacman_ghosts_touch = function(){
 
 	}
 	else if ((pacman_x == pinky_x) && (pacman_y == pinky_y)){
-		console.log("murio")
-		this.stateGame=4
-		this.death1Sound.play()
-		this.mainSound.stop()
-		this.auxTime=this.currentTime
+		if (this.pinky.state == PhantomState.FRIGHTENED){
+			this.checkGhostBonus = 1;
+			this.pinkyEat = true
+			this.pinky.sprite.x = 16*14
+			this.pinky.sprite.y = 16*16
+			console.log("FRIGHTENED")
+		}
+		else{
+			console.log("murio")
+			this.stateGame=4
+			this.death1Sound.play()
+			this.mainSound.stop()
+			this.auxTime=this.currentTime
+		}
 	}
 	else if ((pacman_x == inky_x) && (pacman_y == inky_y)){
-		console.log("murio")
-		this.stateGame=4
-		this.death1Sound.play()
-		this.mainSound.stop()
-		this.auxTime=this.currentTime
+		if (this.inky.state == PhantomState.FRIGHTENED){
+			this.checkGhostBonus = 1;
+			this.inkyEat = true
+			this.inky.sprite.x = 16*14
+			this.inky.sprite.y = 16*16
+			console.log("FRIGHTENED")
+		}
+		else{
+			console.log("murio")
+			this.stateGame=4
+			this.death1Sound.play()
+			this.mainSound.stop()
+			this.auxTime=this.currentTime
+		}
 	}
 	else if ((pacman_x == clyde_x) && (pacman_y == clyde_y)){
-		console.log("murio")
-		this.stateGame=4
-		this.death1Sound.play()
-		this.mainSound.stop()
-		this.auxTime=this.currentTime
+		if (this.clyde.state == PhantomState.FRIGHTENED){
+			this.checkGhostBonus = 1;
+			this.clydeEat = true
+			this.clyde.sprite.x = 16*14
+			this.clyde.sprite.y = 16*16
+			console.log("FRIGHTENED")
+		}
+		else{
+			console.log("murio")
+			this.stateGame=4
+			this.death1Sound.play()
+			this.mainSound.stop()
+			this.auxTime=this.currentTime
+		}
+		
 	}
 }
 
