@@ -9,8 +9,10 @@ const PhantomDirection = {
 	UP: 2,
 	DOWN: 3,
 };
-function Phantom(name, Xpos, Ypos, actual_direction)
+function Phantom(name, Xpos, Ypos, actual_direction, inside_box, dots_eaten_on_entry)
 {
+    this.inside_box = inside_box
+    this.dots_eaten_on_entry = dots_eaten_on_entry
     this.name = name;
 	this.speed = 0.0;
     this.acumulate_speed = 0.0;
@@ -147,35 +149,47 @@ Phantom.prototype.set_target_tile = function (x, y, is_scared=false, tilemap)
 
 Phantom.prototype.supermove = function (deltaTime, tilemap, pacmanSprite, hardness_settings, level)
 {
-    var movimiento_pendiente = Math.floor(this.speed + this.acumulate_speed);
-    
-    //Si está en el tunel
-    if ( (Math.floor(this.sprite.y /16) == 13) && (
-            (Math.floor(this.sprite.x /16) <= 3) ||
-            (Math.floor(this.sprite.x /16) >= 24) ) ){
+    var movimiento_pendiente = 0.0 // + Math.floor(this.speed + this.acumulate_speed);
+    this.acumulate_speed = parseFloat( this.acumulate_speed.toFixed(3) );
 
-            var speed_aux = 2 * hardness_settings["ghost_tunel"][level-1] // In pixels per frame
-            movimiento_pendiente = Math.floor(speed_aux + this.acumulate_speed);
-            this.acumulate_speed = (this.speed_aux + this.acumulate_speed) - Math.floor(this.speed_aux + this.acumulate_speed);
+    if ( isNaN(this.acumulate_speed) ){
+        this.acumulate_speed = 0.0
     }
-    else{
+
+
+    // está en el tunel
+    if ( (Math.floor(this.sprite.y /16) == 17) && (
+            (Math.floor(this.sprite.x /16) <= 3) ||
+            (Math.floor(this.sprite.x /16) >= 23) ) ){
+
+            var tunel_speed = 2.0 * hardness_settings["ghost_tunel"][level-1] // In pixels per frame
+
+            movimiento_pendiente = Math.floor(tunel_speed + this.acumulate_speed);
+
+            this.acumulate_speed = parseFloat(tunel_speed + this.acumulate_speed) - Math.floor(tunel_speed + this.acumulate_speed);
+
+    }
+    else{  
+        movimiento_pendiente = Math.floor(this.speed + this.acumulate_speed)
         this.acumulate_speed = (this.speed + this.acumulate_speed) - Math.floor(this.speed + this.acumulate_speed);
     }
 
-    if (movimiento_pendiente == 0){
-        movimiento_pendiente = 1;
-        this.acumulate_speed = 0.0;
-    }
     
     while ((0 < movimiento_pendiente)){
+
         // REPARAR TELETRANSPORTE TUNEL
-        if ( (this.sprite.x == 16) && (this.actual_direction == 'left') ){
-            this.sprite.x = 28*16-16;   // afinar
-        }
-        else if ( (this.sprite.x == 28*16-16) && (this.actual_direction == 'right') ){
-            this.sprite.x = 0+16; // fracaso absoluto
+        if ((Math.floor(this.sprite.y /16) == 17) && (this.sprite.x == 16) && (this.actual_direction == 'left') ){ // OK
+            this.sprite.x = 28*16-16;
         }
 
+        else if ((Math.floor(this.sprite.y /16) == 17) && (this.sprite.x >= (26*16+8)) && (this.actual_direction == 'right')){
+            this.sprite.x = 0+16;
+        }
+
+        if (this.name == "blinky" && this.actual_direction == "up"){
+            console.log(this.name, this.sprite.x, this.sprite.y, Math.floor(this.sprite.x /16), Math.floor(this.sprite.y /16))
+            
+        }
         // si está en 8, 8 -> busca ir por grietas
         if ( ( ((this.sprite.x%16) == 8) && ((this.sprite.y%16) == 8) )  ){
             var new_dir =this.obtener_nueva_direccion(this.actual_direction, tilemap);

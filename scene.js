@@ -57,6 +57,7 @@ function Scene()
 	this.eatenSound = AudioFX('sounds/power_pellet.wav', { loop: true})
 	this.death1Sound = AudioFX('sounds/death_1.wav');
 	this.death2Sound = AudioFX('sounds/death_2.wav');
+	this.ghostateSound = AudioFX('sounds/eat_ghost.wav', { loop: true})
 
 	// Create Pacman
 	this.create_pacman()
@@ -102,7 +103,7 @@ Scene.prototype.init = function(){
 	}
 	else{
 		this.level += 1;
-		this.dotsNumber = 0
+		this.dotsNumber = 0	//Contador de dots comidos
 	}
 	
 	// Set Pacman inital animation
@@ -135,10 +136,10 @@ Scene.prototype.init = function(){
 	this.speedPacman = this.maxSpeed*this.hardness_settings["pacman_speed"][this.level-1] // In pixels per frame
 
 	//  Posicion inicial donde se pintan los fantasmas
-	this.blinky = new Phantom("blinky", 16*3+8 , 16*3+8 ,"right");
-	this.pinky = new Phantom("pinky", 16*3+8 , 16*3+8 ,"right");
-	this.inky = new Phantom("inky", 16*3+8 , 16*3+8 ,"right");
-	this.clyde = new Phantom("clyde", 16*3+8 , 16*3+8 ,"right");
+	this.blinky = new Phantom("blinky", 16*12+8 , 16*15+8 ,"left", false, 0);
+	this.pinky = new Phantom("pinky", 16*12+8 , 16*17+8 ,"left", true, 0);
+	this.inky = new Phantom("inky", 16*13+8 , 16*17+8 ,"right", true, 0);
+	this.clyde = new Phantom("clyde", 16*14+8 , 16*17+8 ,"right", true, 0);
 
 	this.blinky.speed = this.maxSpeed*this.hardness_settings["pacman_speed"][this.level-1] // In pixels per frame
 	this.pinky.speed = this.maxSpeed*this.hardness_settings["pacman_speed"][this.level-1] // In pixels per frame
@@ -359,6 +360,7 @@ Scene.prototype.update = function(deltaTime)
 
 			else if (keyboard[71]){ // tecla G
 				this.eat_power_pellet()
+				console.log(this.pacmanSprite.x, this.pacmanSprite.y, Math.floor(this.pacmanSprite.x/16),  Math.floor(this.pacmanSprite.y/16))
 			}
 	
 		}
@@ -489,6 +491,32 @@ Scene.prototype.update = function(deltaTime)
 	
 		}
 
+		// Se comprueba si han de sacarse los fantasmas de la caja
+		if ((this.blinky.inside_box) ){
+			this.blinky.inside_box = false
+			this.blinky.sprite.x =  16*13+8
+			this.blinky.sprite.y = 16*15+8
+			this.blinky.actual_direction = "right"
+		}
+		else if ( this.pinky.inside_box && ( this.pinky.dots_eaten_on_entry + 1 < this.dotsNumber) ){
+			this.pinky.inside_box = false
+			this.pinky.sprite.x =  16*13+8
+			this.pinky.sprite.y = 16*15+8
+			this.pinky.actual_direction = "left"
+		}
+		else if ( this.inky.inside_box && ( this.inky.dots_eaten_on_entry + 10 < this.dotsNumber) ){
+			this.inky.inside_box = false
+			this.inky.sprite.x =  16*13+8
+			this.inky.sprite.y = 16*15+8
+			this.inky.actual_direction = "left"
+		}
+		else if ( this.clyde.inside_box && ( this.clyde.dots_eaten_on_entry + 20 < this.dotsNumber) ){
+			this.clyde.inside_box = false
+			this.clyde.sprite.x =  16*13+8
+			this.clyde.sprite.y = 16*15+8
+			this.clyde.actual_direction = "left"
+		}		
+		// Se mueven los fantasmas
 		this.blinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
 		this.pinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
 		this.inky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
@@ -525,9 +553,14 @@ Scene.prototype.update = function(deltaTime)
 			this.start_game()
 		}
 	}
-	else if (this.stateGame==6){
+	else  if (this.stateGame==6){
+		this.ghostateSound.play()
+		this.eatenSound.stop()
 		if ((this.currentTime-this.auxTime)>3000){
 			this.stateGame = 1
+			this.ghostateSound.stop()
+			this.eatenSound.play()
+
 
 			this.blinkyEat = false
 			this.pinkyEat = false
@@ -593,7 +626,7 @@ Scene.prototype.draw = function ()
 		var textSize = context.measureText(text);
 		context.fillText(text, 224 - textSize.width/2, 490);
 
-		var text = "Paul Gonzales";
+		var text = "Paul Gonzalez";
 		var textSize = context.measureText(text);
 		context.fillText(text, 224 - textSize.width/2, 490+32);
 
@@ -637,8 +670,6 @@ Scene.prototype.draw = function ()
 		else{
 			// Draw fruit
 			this.draw_fruit();
-			
-			
 
 			// Draw pacman sprite
 			if(this.stateGame == 4){//Lose
@@ -663,21 +694,20 @@ Scene.prototype.draw = function ()
 				}
 				context.translate(-this.pacmanSprite.x, -this.pacmanSprite.y)
 			}
+			else if(this.stateGame==6){
+				if(this.ghost_ate==1)
+					context.drawImage(this.scoreGhost_tilesheet.img, 0, 0, 16, 16, this.pacmanSprite.x, this.pacmanSprite.y, 32, 32);
+				else if(this.ghost_ate==2)
+					context.drawImage(this.scoreGhost_tilesheet.img, 16, 0, 16, 16, this.pacmanSprite.x, this.pacmanSprite.y, 32, 32);
+				else if(this.ghost_ate==3)
+					context.drawImage(this.scoreGhost_tilesheet.img, 32, 0, 16, 16, this.pacmanSprite.x, this.pacmanSprite.y, 32, 32);
+				else if(this.ghost_ate==4)
+					context.drawImage(this.scoreGhost_tilesheet.img, 48, 0, 16, 16, this.pacmanSprite.x, this.pacmanSprite.y, 32, 32);
+			}
 			else{
 				this.pacmanSprite.draw()
 			}
-
-			// Draw ghost score
-			if(this.ghost_ate==1)
-				context.drawImage(this.scoreGhost_tilesheet.img, 0, 0, 16, 16, 208, 344, 32, 32);
-			else if(this.ghost_ate==2)
-				context.drawImage(this.scoreGhost_tilesheet.img, 16, 0, 16, 16, 208, 344, 32, 32);
-			else if(this.ghost_ate==3)
-				context.drawImage(this.scoreGhost_tilesheet.img, 32, 0, 16, 16, 208, 344, 32, 32);
-			else if(this.ghost_ate==4)
-				context.drawImage(this.scoreGhost_tilesheet.img, 48, 0, 16, 16, 208, 344, 32, 32);
-			
-			
+		
 			if(this.stateGame != 4){
 				// Draw ghosts sprites
 				this.blinky.sprite.draw();
@@ -1210,17 +1240,20 @@ Scene.prototype.pacman_ghosts_touch = function(){
 		if (this.blinky.state == PhantomState.FRIGHTENED){
 			this.checkGhostBonus = 1;
 			this.blinkyEat = true
-			this.blinky.sprite.x = 16*14
-			this.blinky.sprite.y = 16*16
+			this.blinky.sprite.x = 16*14+8
+			this.blinky.sprite.y = 16*18+8
+			this.blinky.inside_box = true
+			this.blinky.dots_eaten_on_entry = this.dotsNumber
 			this.blinky.state = PhantomState.CHASE
 			console.log("FRIGHTENED")
 		}
 		else{
-			console.log("murio")
+			console.log("PACMAN murio")
 			this.stateGame=4
 			this.death1Sound.play()
 			this.mainSound.stop()
 			this.auxTime=this.currentTime
+			this.reset_phantoms_to_box()
 		}
 
 	}
@@ -1228,8 +1261,11 @@ Scene.prototype.pacman_ghosts_touch = function(){
 		if (this.pinky.state == PhantomState.FRIGHTENED){
 			this.checkGhostBonus = 1;
 			this.pinkyEat = true
-			this.pinky.sprite.x = 16*14
-			this.pinky.sprite.y = 16*16
+			this.pinky.sprite.x = 16*14+8
+			this.pinky.sprite.y = 16*18+8
+			this.pinky.inside_box = true
+			this.pinky.dots_eaten_on_entry = this.dotsNumber
+			this.pinky.state = PhantomState.CHASE
 			console.log("FRIGHTENED")
 		}
 		else{
@@ -1238,14 +1274,18 @@ Scene.prototype.pacman_ghosts_touch = function(){
 			this.death1Sound.play()
 			this.mainSound.stop()
 			this.auxTime=this.currentTime
+			this.reset_phantoms_to_box()
 		}
 	}
 	else if ((pacman_x == inky_x) && (pacman_y == inky_y)){
 		if (this.inky.state == PhantomState.FRIGHTENED){
 			this.checkGhostBonus = 1;
 			this.inkyEat = true
-			this.inky.sprite.x = 16*14
-			this.inky.sprite.y = 16*16
+			this.inky.sprite.x = 16*15+8
+			this.inky.sprite.y = 16*18+8
+			this.inky.inside_box = true
+			this.inky.dots_eaten_on_entry = this.dotsNumber
+			this.inky.state = PhantomState.CHASE
 			console.log("FRIGHTENED")
 		}
 		else{
@@ -1254,14 +1294,18 @@ Scene.prototype.pacman_ghosts_touch = function(){
 			this.death1Sound.play()
 			this.mainSound.stop()
 			this.auxTime=this.currentTime
+			this.reset_phantoms_to_box()
 		}
 	}
 	else if ((pacman_x == clyde_x) && (pacman_y == clyde_y)){
 		if (this.clyde.state == PhantomState.FRIGHTENED){
 			this.checkGhostBonus = 1;
 			this.clydeEat = true
-			this.clyde.sprite.x = 16*14
-			this.clyde.sprite.y = 16*16
+			this.clyde.sprite.x = 16*15+8
+			this.clyde.sprite.y = 16*19+8
+			this.clyde.inside_box = true
+			this.clyde.dots_eaten_on_entry = this.dotsNumber
+			this.clyde.state = PhantomState.CHASE
 			console.log("FRIGHTENED")
 		}
 		else{
@@ -1270,6 +1314,7 @@ Scene.prototype.pacman_ghosts_touch = function(){
 			this.death1Sound.play()
 			this.mainSound.stop()
 			this.auxTime=this.currentTime
+			this.reset_phantoms_to_box()
 		}
 		
 	}
@@ -1284,4 +1329,14 @@ Scene.prototype.check_tricks = function(){
 		this.dotsNumber = this.player_win()
 		console.log("Ganaste")
 	}
+}
+Scene.prototype.reset_phantoms_to_box = function(){
+	this.blinky.inside_box = true
+	this.blinky.dots_eaten_on_entry = this.dotsNumber
+	this.pinky.inside_box = true
+	this.pinky.dots_eaten_on_entry = this.dotsNumber
+	this.inky.inside_box = true
+	this.inky.dots_eaten_on_entry = this.dotsNumber
+	this.clyde.inside_box = true
+	this.clyde.dots_eaten_on_entry = this.dotsNumber
 }
