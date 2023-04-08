@@ -126,6 +126,7 @@ Scene.prototype.init = function(){
 
 	this.checkBonus = 0
 	this.checkGhostEat = false
+	this.start_phantom_twinkle = false
 	this.pacmanDieKeyFrame = 0
 
 	this.blinkyEat = false
@@ -151,7 +152,6 @@ Scene.prototype.init = function(){
 	var pacman_y = Math.floor(this.pacmanSprite.y/16);
 	var blinky_x = Math.floor(this.blinky.sprite.x/16);
 	var blinky_y = Math.floor(this.blinky.sprite.y/16);
-	//console.log('ini', pacman_x, pacman_y, blinky_x, blinky_y);
 
 	this.blinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
 	this.pinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
@@ -303,13 +303,30 @@ Scene.prototype.update = function(deltaTime)
 			//aqui poner numerito —> points_wined_eating_ghost
 		}
 		
+		// Hace que los fantasmas parpadeen antes de dejar de estar FRIGHTENED
+		if (this.checkGhostEat && ((this.currentTime-this.auxTimeGhostEat)>1000*(this.hardness_settings["fright_time"][this.level-1]*0.75) ) && !this.start_phantom_twinkle){
+			this.start_phantom_twinkle = true;
+			if (this.blinky.state == PhantomState.FRIGHTENED){
+				this.blinky.set_animation_twinkle()
+			}
+			if (this.pinky.state == PhantomState.FRIGHTENED){
+				this.pinky.set_animation_twinkle()
+			}
+			if (this.inky.state == PhantomState.FRIGHTENED){
+				this.inky.set_animation_twinkle()
+			}
+			if (this.clyde.state == PhantomState.FRIGHTENED){
+				this.clyde.set_animation_twinkle()
+			}
+
+		}
 
 		// Ghost eating time
 		if (this.checkGhostEat && ((this.currentTime-this.auxTimeGhostEat)>1000*this.hardness_settings["fright_time"][this.level-1])){
 			this.eatenSound.stop()
 			this.mainSound.play()
 			this.checkGhostEat = false
-			
+			this.start_phantom_twinkle = false
 			this.blinky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1]
 			this.pinky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1]
 			this.inky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1]
@@ -517,10 +534,14 @@ Scene.prototype.update = function(deltaTime)
 			this.clyde.actual_direction = "left"
 		}		
 		// Se mueven los fantasmas
-		this.blinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
-		this.pinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
-		this.inky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
-		this.clyde.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level);
+
+
+		this.update_phantom_state()
+
+		this.blinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level, this.currentTime);
+		this.pinky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level, this.currentTime);
+		this.inky.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level, this.currentTime);
+		this.clyde.supermove(deltaTime, this.map, this.pacmanSprite, this.hardness_settings, this.level, this.currentTime);
 	}
 	else if (this.stateGame==2){// Win level
 
@@ -843,6 +864,7 @@ Scene.prototype.valid_turn_move = function (direction){
 }
 
 Scene.prototype.eat_power_pellet = function(){
+	this.start_phantom_twinkle = false
 	this.checkGhostEat = true
 	this.auxTimeGhostEat = this.currentTime
 	this.mainSound.stop()
@@ -1339,4 +1361,39 @@ Scene.prototype.reset_phantoms_to_box = function(){
 	this.inky.dots_eaten_on_entry = this.dotsNumber
 	this.clyde.inside_box = true
 	this.clyde.dots_eaten_on_entry = this.dotsNumber
+}
+
+Scene.prototype.update_phantom_state = function(){
+	var actual_state;
+	var t = Math.floor(this.currentTime /1000)
+	console.log("T", t)
+	if (this.level == 1){
+		if ( (t < 7) || (27<=t && t<34) || (54<=t && t<59)|| (79<=t && t<84)){
+			actual_state = PhantomState.SCATTER
+		}
+		else{
+			actual_state = PhantomState.CHASE
+		}
+	}
+	else if ( 2 <= this.level && this.level <= 4){
+
+	}
+	else{ // this.level >= 5	
+
+	}
+
+
+	// AÑADIR TOLERANCIA A PhantomState.FRIGHTENED
+
+	var pacman_x = Math.floor(this.pacmanSprite.x/16);
+	var pacman_y = Math.floor(this.pacmanSprite.y/16);
+	var blinky_x = Math.floor(this.blinky.sprite.x/16);
+	var blinky_y = Math.floor(this.blinky.sprite.y/16);
+
+	this.blinky.set_new_state(actual_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	this.pinky.set_new_state(actual_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	this.inky.set_new_state(actual_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	this.clyde.set_new_state(actual_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	// this.blinky.set_new_state(new_state, tilemap, pacman_x, pacman_y, pacman_dir, blinky_x, blinky_y)
+
 }

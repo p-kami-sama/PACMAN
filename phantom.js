@@ -149,6 +149,7 @@ Phantom.prototype.set_target_tile = function (x, y, is_scared=false, tilemap)
 
 Phantom.prototype.supermove = function (deltaTime, tilemap, pacmanSprite, hardness_settings, level)
 {
+
     var movimiento_pendiente = 0.0 // + Math.floor(this.speed + this.acumulate_speed);
     this.acumulate_speed = parseFloat( this.acumulate_speed.toFixed(3) );
 
@@ -177,19 +178,15 @@ Phantom.prototype.supermove = function (deltaTime, tilemap, pacmanSprite, hardne
     
     while ((0 < movimiento_pendiente)){
 
-        // REPARAR TELETRANSPORTE TUNEL
+        // TELETRANSPORTE TUNEL
         if ((Math.floor(this.sprite.y /16) == 17) && (this.sprite.x == 16) && (this.actual_direction == 'left') ){ // OK
             this.sprite.x = 28*16-16;
         }
-
         else if ((Math.floor(this.sprite.y /16) == 17) && (this.sprite.x >= (26*16+8)) && (this.actual_direction == 'right')){
             this.sprite.x = 0+16;
         }
 
-        if (this.name == "blinky" && this.actual_direction == "up"){
-            console.log(this.name, this.sprite.x, this.sprite.y, Math.floor(this.sprite.x /16), Math.floor(this.sprite.y /16))
-            
-        }
+
         // si está en 8, 8 -> busca ir por grietas
         if ( ( ((this.sprite.x%16) == 8) && ((this.sprite.y%16) == 8) )  ){
             var new_dir =this.obtener_nueva_direccion(this.actual_direction, tilemap);
@@ -215,7 +212,7 @@ Phantom.prototype.supermove = function (deltaTime, tilemap, pacmanSprite, hardne
 
 
         }
-           // prosigue en la direccion en la que no solisiona
+           // prosigue en la direccion en la que no colisiona
         switch (this.actual_direction){
             case "left":
                 this.sprite.x -= 1;
@@ -235,11 +232,6 @@ Phantom.prototype.supermove = function (deltaTime, tilemap, pacmanSprite, hardne
     
     
     }
-    // if (this.name == 'inky'){
-    //     console.log('-----------------------', this.name);
-    //     console.log("X", this.sprite.x, "Y", this.sprite.y, "direccion", this.actual_direction);
-    //     console.log('TARGET TILE', this.target_tile_x, this.target_tile_y);
-    // }
     this.sprite.update(deltaTime);
 
 }
@@ -284,11 +276,6 @@ Phantom.prototype.obtener_nueva_direccion = function(old_dir, tilemap){
   
 
         var min_dist = Math.min(left_dist, right_dist, up_dist, down_dist);
-
-        // console.log('-----------------------', this.name);
-        // console.log("X", this.sprite.x, "Y", this.sprite.y, "direccion", this.actual_direction);
-        // console.log(left_dist, right_dist, up_dist, down_dist, min_dist)
-
 
         // orden -> up, left, down, right
         if( min_dist == up_dist){
