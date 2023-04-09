@@ -1363,23 +1363,35 @@ Scene.prototype.reset_phantoms_to_box = function(){
 	this.clyde.dots_eaten_on_entry = this.dotsNumber
 }
 
+
+// Se encarga de canviar el estado de los fantasmas dependiendo del nivel y el tiempo
 Scene.prototype.update_phantom_state = function(){
-	var actual_state;
+	var new_state;
 	var t = Math.floor(this.currentTime /1000)
 	console.log("T", t)
 	if (this.level == 1){
 		if ( (t < 7) || (27<=t && t<34) || (54<=t && t<59)|| (79<=t && t<84)){
-			actual_state = PhantomState.SCATTER
+			new_state = PhantomState.SCATTER
 		}
 		else{
-			actual_state = PhantomState.CHASE
+			new_state = PhantomState.CHASE
 		}
 	}
 	else if ( 2 <= this.level && this.level <= 4){
-
+		if ( (t < 7) || (27<=t && t<34) || (54<=t && t<59)|| (1092<=t && (t%60 == 0) )){
+			new_state = PhantomState.SCATTER
+		}
+		else{
+			new_state = PhantomState.CHASE
+		}
 	}
 	else{ // this.level >= 5	
-
+		if ( (t < 5) || (25<=t && t<30) || (50<=t && t<55)|| (1092<=t && (t%60 == 0) )){
+			new_state = PhantomState.SCATTER
+		}
+		else{
+			new_state = PhantomState.CHASE
+		}
 	}
 
 
@@ -1390,10 +1402,21 @@ Scene.prototype.update_phantom_state = function(){
 	var blinky_x = Math.floor(this.blinky.sprite.x/16);
 	var blinky_y = Math.floor(this.blinky.sprite.y/16);
 
-	this.blinky.set_new_state(actual_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
-	this.pinky.set_new_state(actual_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
-	this.inky.set_new_state(actual_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
-	this.clyde.set_new_state(actual_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	if ((this.blinky.state != PhantomState.FRIGHTENED) && new_state != PhantomState.FRIGHTENED){
+		this.blinky.set_new_state(new_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	}
+	if ((this.pinky.state != PhantomState.FRIGHTENED) && new_state != PhantomState.FRIGHTENED){
+		this.pinky.set_new_state(new_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	}
+	if ((this.inky.state != PhantomState.FRIGHTENED) && new_state != PhantomState.FRIGHTENED){
+		this.inky.set_new_state(new_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	}
+	if ((this.clyde.state != PhantomState.FRIGHTENED) && new_state != PhantomState.FRIGHTENED){
+		this.clyde.set_new_state(new_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
+	}
+
+
+
 	// this.blinky.set_new_state(new_state, tilemap, pacman_x, pacman_y, pacman_dir, blinky_x, blinky_y)
 
 }
