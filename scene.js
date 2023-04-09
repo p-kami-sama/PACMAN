@@ -433,8 +433,6 @@ Scene.prototype.update = function(deltaTime)
 				this.pacmanSprite.setAnimation(PACMAN_STOP_RIGHT);
 			}
 			else if(tileId == 13){
-				//console.log(this.pacmanSprite.x)
-				//this.pacmanSprite.x += this.speedPacman;
 				if (this.pacmanSprite.x >= 426+32) this.pacmanSprite.x=0
 			}
 			else{
@@ -745,20 +743,16 @@ Scene.prototype.draw = function ()
 
 Scene.prototype.check_center = function(){
 
-	var centros = {"centroPacmanX":0,"centroPacmanX":0,"centroTileX":0,"centroTileY":0};
+	var centros = {"centroPacmanX":0,"centroPacmanY":0,"centroTileX":0,"centroTileY":0};
 	centros["centroPacmanX"] = this.pacmanSprite.x + 16
 	centros["centroPacmanY"] = this.pacmanSprite.y + 16
 
 	var x = Math.floor(centros["centroPacmanX"]/16);
 	var y = Math.floor(centros["centroPacmanY"]/16);
 
-	//console.log(x + ", " + y);
 
 	centros["centroTileX"] = (x*16)+8
 	centros["centroTileY"] = (y*16)+8
-
-	//console.log(centros["centroPacmanX"] + ", " + centros["centroPacmanY"]);
-	//console.log(centros["centroTileX"] + ": " + centros["centroTileY"]);
 
 	return centros
 }
@@ -1368,7 +1362,6 @@ Scene.prototype.reset_phantoms_to_box = function(){
 Scene.prototype.update_phantom_state = function(){
 	var new_state;
 	var t = Math.floor(this.currentTime /1000)
-	console.log("T", t)
 	if (this.level == 1){
 		if ( (t < 7) || (27<=t && t<34) || (54<=t && t<59)|| (79<=t && t<84)){
 			new_state = PhantomState.SCATTER
@@ -1393,10 +1386,6 @@ Scene.prototype.update_phantom_state = function(){
 			new_state = PhantomState.CHASE
 		}
 	}
-
-
-	// AÑADIR TOLERANCIA A PhantomState.FRIGHTENED
-
 	var pacman_x = Math.floor(this.pacmanSprite.x/16);
 	var pacman_y = Math.floor(this.pacmanSprite.y/16);
 	var blinky_x = Math.floor(this.blinky.sprite.x/16);
@@ -1414,9 +1403,4 @@ Scene.prototype.update_phantom_state = function(){
 	if ((this.clyde.state != PhantomState.FRIGHTENED) && new_state != PhantomState.FRIGHTENED){
 		this.clyde.set_new_state(new_state, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
 	}
-
-
-
-	// this.blinky.set_new_state(new_state, tilemap, pacman_x, pacman_y, pacman_dir, blinky_x, blinky_y)
-
 }

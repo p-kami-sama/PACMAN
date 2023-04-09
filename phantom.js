@@ -137,7 +137,6 @@ Phantom.prototype.set_target_tile = function (x, y, is_scared=false, tilemap)
 
 
     }
-    // quitar esto y hacer cosa de redireccionar (hacia direccion contraria si es valido)
 }
 
 
@@ -208,6 +207,9 @@ Phantom.prototype.supermove = function (deltaTime, tilemap, pacmanSprite, hardne
                         this.sprite.setAnimation(3);
                         break;
                 };
+            }
+            else{
+                this.actual_direction = this.get_random_direction(this.actual_direction, tilemap);
             }
 
 
@@ -290,7 +292,6 @@ Phantom.prototype.obtener_nueva_direccion = function(old_dir, tilemap){
         else { // ( min_dist == right_dist)
             return "right";
         }
-
 }
 
 
@@ -481,3 +482,49 @@ Phantom.prototype.set_animation_twinkle = function() {
     this.sprite.setAnimation(5);     //5 es el parpadeo para cuando la animación va a terminar
 }
 
+// Get random valid direction
+Phantom.prototype.get_random_direction = function(old_dir, tilemap){
+    
+    var dir_list = ['left', 'right', 'up', 'down']
+
+
+
+    switch (old_dir){ //evita el retroceso
+        case 'left':
+            dir_list = dir_list.filter(dir => dir != 'right');
+            break;
+        case 'right':
+            dir_list = dir_list.filter(dir => dir != 'left');
+            break;
+        case 'up':
+            dir_list = dir_list.filter(dir => dir != 'down');
+            break;
+        case 'down':
+            dir_list = dir_list.filter(dir => dir != 'up');
+            break;
+    };
+    // left
+    if ( ! [0, 45, 46, 48].includes( tilemap.collisionLeft(this.sprite) )  ){
+        dir_list = dir_list.filter(dir => dir != 'left');
+    };
+    // right
+    if ( ! [0, 45, 46, 48].includes( tilemap.collisionRight(this.sprite) )  ){
+        dir_list = dir_list.filter(dir => dir != 'right');
+    };
+    // up
+    if ( ! [0, 45, 46, 48].includes( tilemap.collisionUp(this.sprite) )  ){
+        dir_list = dir_list.filter(dir => dir != 'up');
+    };
+    // down
+    if ( ! [0, 45, 46, 48].includes( tilemap.collisionDown(this.sprite) )  ){
+        dir_list = dir_list.filter(dir => dir != 'down');
+    };
+  
+        
+    if (this.name == 'blinky'){
+        console.log("NEWWW", dir_list, old_dir)
+    }
+
+    var result = dir_list[Math.floor(Math.random() * dir_list.length)];
+    return result
+}
