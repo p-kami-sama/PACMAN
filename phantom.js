@@ -522,7 +522,7 @@ Phantom.prototype.get_random_direction = function(old_dir, tilemap){
   
         
     if (this.name == 'blinky'){
-        console.log("NEWWW", dir_list, old_dir)
+        //console.log("NEWWW", dir_list, old_dir)
     }
 
     var result = dir_list[Math.floor(Math.random() * dir_list.length)];

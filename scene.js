@@ -27,8 +27,6 @@ const PACMAN_EAT_RIGHT = 5;
 const PACMAN_EAT_UP = 6;
 const PACMAN_EAT_DOWN = 7;
 
-const PACMAN_CADAVER = 8;
-
 // Scene. Updates and draws a single scene of the game.
 
 function Scene()
@@ -62,7 +60,9 @@ function Scene()
 	// Create Pacman
 	this.create_pacman()
 
-	this.highscore = 1000
+	if(!localStorage.highscore) localStorage.highscore = 0
+
+	this.highscore = localStorage.highscore
 	this.maxSpeed = 2
 	this.hardness_settings = structuredClone(hardness_settings)
 	this.win_condition = 284 //284 dots + PowerPellets
@@ -74,7 +74,7 @@ Scene.prototype.start_game = function(){
 
 	this.score = 0
 	this.level = 0
-	this.stateGame = 1
+	this.stateGame = -1
 	this.pacmanLives = 3
 	this.selectMenu = 0
 
@@ -167,7 +167,8 @@ Scene.prototype.update = function(deltaTime)
 {
 	// Keep track of time
 	if (interacted){
-		this.currentTime += deltaTime;
+		if(this.stateGame!=6) this.currentTime += deltaTime;
+		else this.auxTime += deltaTime;
 	}
 
 	this.check_tricks()
@@ -237,29 +238,27 @@ Scene.prototype.update = function(deltaTime)
 			var pacman_y = Math.floor(this.pacmanSprite.y/16);
 			var blinky_x = Math.floor(this.blinky.sprite.x/16);
 			var blinky_y = Math.floor(this.blinky.sprite.y/16);
-			
-			
 
 			if(this.blinkyEat){
 				
 				this.blinky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
 				this.blinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
-				console.log(this.blinky.state)
+				//console.log(this.blinky.state)
 			}
 			if(this.pinkyEat){
 				this.pinky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
 				this.pinky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
-				console.log(this.pinky.state)
+				//console.log(this.pinky.state)
 			}
 			if(this.inkyEat){
 				this.inky.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
 				this.inky.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
-				console.log(this.inky.state)
+				//console.log(this.inky.state)
 			}
 			if(this.clydeEat){
 				this.clyde.speed = this.maxSpeed*this.hardness_settings["ghost_speed"][this.level-1] // In pixels per frame
 				this.clyde.set_new_state(PhantomState.CHASE, this.map, pacman_x, pacman_y, this.pacmanDirection, blinky_x, blinky_y );
-				console.log(this.clyde.state)
+				//console.log(this.clyde.state)
 			}
 			
 		}
@@ -292,11 +291,11 @@ Scene.prototype.update = function(deltaTime)
 		}
 
 		if(this.checkGhostBonus == 1){ // pacman ha comido un fantasma
-			var points_wined_eating_ghost = 200 * Math.pow(2, this.ghost_ate);
+			this.score += 200 * Math.pow(2, this.ghost_ate);
 			this.ghost_ate += 1;
-			this.score += points_wined_eating_ghost;
-			this.checkGhostBonus = 2
-			this.auxTime=this.currentTime
+			this.auxTime = 0
+
+			this.checkGhostBonus = 0
 
 			this.stateGame = 6
 			
@@ -334,7 +333,7 @@ Scene.prototype.update = function(deltaTime)
 
 		if (this.pacmanDirection!='cornering'){
 			// Update pacman movement direction
-			if( (keyboard[37] || keyboard[65]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) && (this.pacmanDirection!='left')){// KEY_LEFT
+			if( (keyboard[37] || keyboard[65]) && (this.pacmanDirection!='left')){// KEY_LEFT
 				if(this.valid_turn_move('left')){
 					if(this.pacmanSprite.currentAnimation != PACMAN_EAT_LEFT)
 						this.pacmanSprite.setAnimation(PACMAN_EAT_LEFT);
@@ -342,7 +341,7 @@ Scene.prototype.update = function(deltaTime)
 					this.pacmanDirection = this.make_cornering('left', this.pacmanDirection)
 				}
 			}
-			else if( (keyboard[39] || keyboard[68]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) && (this.pacmanDirection!='right')){ // KEY_RIGHT
+			else if( (keyboard[39] || keyboard[68]) && (this.pacmanDirection!='right')){ // KEY_RIGHT
 				
 				if(this.valid_turn_move('right')){
 					if(this.pacmanSprite.currentAnimation != PACMAN_EAT_RIGHT)
@@ -351,7 +350,7 @@ Scene.prototype.update = function(deltaTime)
 					this.pacmanDirection = this.make_cornering('right', this.pacmanDirection)
 				}
 			}
-			else if( (keyboard[38] || keyboard[87]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) && (this.pacmanDirection!='up')){// KEY_UP
+			else if( (keyboard[38] || keyboard[87]) && (this.pacmanDirection!='up')){// KEY_UP
 	
 				if(this.valid_turn_move('up')){
 					if(this.pacmanSprite.currentAnimation != PACMAN_EAT_UP)
@@ -360,7 +359,7 @@ Scene.prototype.update = function(deltaTime)
 					this.pacmanDirection = this.make_cornering('up', this.pacmanDirection)
 				}
 			}
-			else if( (keyboard[40] || keyboard[83]) && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER) && (this.pacmanDirection!='down')){ // KEY_DOWN
+			else if( (keyboard[40] || keyboard[83]) && (this.pacmanDirection!='down')){ // KEY_DOWN
 				
 				if(this.valid_turn_move('down')){
 					if(this.pacmanSprite.currentAnimation != PACMAN_EAT_DOWN)
@@ -370,15 +369,6 @@ Scene.prototype.update = function(deltaTime)
 				}
 	
 			}
-			else if(keyboard[13] && (this.pacmanSprite.currentAnimation != PACMAN_CADAVER)){
-				this.pacmanSprite.setAnimation(PACMAN_CADAVER);
-			}
-
-			else if (keyboard[71]){ // tecla G
-				this.eat_power_pellet()
-				console.log(this.pacmanSprite.x, this.pacmanSprite.y, Math.floor(this.pacmanSprite.x/16),  Math.floor(this.pacmanSprite.y/16))
-			}
-	
 		}
 	
 		switch(this.pacmanDirection){
@@ -573,7 +563,8 @@ Scene.prototype.update = function(deltaTime)
 	else  if (this.stateGame==6){
 		this.ghostateSound.play()
 		this.eatenSound.stop()
-		if ((this.currentTime-this.auxTime)>3000){
+
+		if (this.auxTime>3000){
 			this.stateGame = 1
 			this.ghostateSound.stop()
 			this.eatenSound.play()
@@ -699,20 +690,23 @@ Scene.prototype.draw = function ()
 			// Draw pacman sprite
 			if(this.stateGame == 4){//Lose
 				context.translate(this.pacmanSprite.x, this.pacmanSprite.y)
-				if(this.pacmanDirection=='up'){
+				if(this.pacmanDirection == 'cornering'){
+					this.pacmanDirection = this.pacmanNewDirection
+				}
+				if(this.pacmanDirection == 'up'){
 					context.drawImage(this.pacman_die_tilesheet.img, this.pacmanDieKeyFrame, 0, 32, 32, 0, 0, 32, 32);
 				}
-				else if(this.pacmanDirection=='down'){
+				else if(this.pacmanDirection == 'down'){
 					context.rotate(3.14)
 					context.drawImage(this.pacman_die_tilesheet.img, this.pacmanDieKeyFrame, 0, 32, 32, -32, -32, 32, 32);
 					context.rotate(-3.14)
 				}
-				else if(this.pacmanDirection=='left'){
+				else if(this.pacmanDirection == 'left'){
 					context.rotate(-3.14/2)
 					context.drawImage(this.pacman_die_tilesheet.img, this.pacmanDieKeyFrame, 0, 32, 32, -32, 0, 32, 32);
 					context.rotate(3.14/2)
 				}
-				else if(this.pacmanDirection=='right'){
+				else if(this.pacmanDirection == 'right'){
 					context.rotate(3.14/2)
 					context.drawImage(this.pacman_die_tilesheet.img, this.pacmanDieKeyFrame, 0, 32, 32, 0, -32, 32, 32);
 					context.rotate(-3.14/2)
@@ -869,7 +863,6 @@ Scene.prototype.eat_power_pellet = function(){
 	this.auxTimeGhostEat = this.currentTime
 	this.mainSound.stop()
 	this.eatenSound.play()
-	console.log("power")
 
 	var pacman_x = Math.floor(this.pacmanSprite.x/16);
 	var pacman_y = Math.floor(this.pacmanSprite.y/16);
@@ -894,10 +887,6 @@ Scene.prototype.getTilepos = function(xpos, ypos){
 
 	pixelx = ((x-1)*16)
 	pixely = ((y-1)*16)+8
-
-	if(xpos>=pixelx) 
-
-	console.log(pixelx + ", " + pixely)
 }
 
 Scene.prototype.eat_dot = function(xpos, ypos){
@@ -910,6 +899,7 @@ Scene.prototype.eat_dot = function(xpos, ypos){
 	
 	if(tileId == 46 || tileId == 48){ //dot
 		this.speedPacman = this.maxSpeed*this.hardness_settings["pacman_speed_dots"][this.level-1]
+		
 		if (this.checkAux){
 			this.wakawakaSound1.play()
 			this.checkAux = false
@@ -920,6 +910,7 @@ Scene.prototype.eat_dot = function(xpos, ypos){
 		}
 		
 		this.dotsNumber += 1
+		if ((this.dotsNumber % 500) == 0) this.pacmanLives += 1
 		
 		//first bonus
 		if(this.dotsNumber == 70){
@@ -940,7 +931,11 @@ Scene.prototype.eat_dot = function(xpos, ypos){
 			this.score += 10
 		}
 
-		if (this.score > this.highscore) this.highscore = this.score;
+		if (this.score > this.highscore) {
+			this.highscore = this.score
+			localStorage.highscore = this.score
+		}
+
 		this.map.map.layers[0].data[(y*28)+x] = 0;
 
 		if (this.dotsNumber == this.win_condition){	
@@ -1055,23 +1050,6 @@ Scene.prototype.create_pacman = function(){
 	this.pacmanSprite.addKeyframe(PACMAN_EAT_DOWN, [32, 96, 32, 32]);
 	this.pacmanSprite.addKeyframe(PACMAN_EAT_DOWN, [64, 96, 32, 32]);
 	this.pacmanSprite.addKeyframe(PACMAN_EAT_DOWN, [96, 96, 32, 32]);
-
-	// CADAVER
-	this.pacmanSprite.addAnimation();
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [0,  128, 32, 32]);
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [32, 128, 32, 32]);
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [64, 128, 32, 32]);
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [96, 128, 32, 32]);
-
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [0,  160, 32, 32]);
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [32, 160, 32, 32]);
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [64, 160, 32, 32]);
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [96, 160, 32, 32]);
-
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [0,  192, 32, 32]);
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [32, 192, 32, 32]);
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [64, 192, 32, 32]);
-	this.pacmanSprite.addKeyframe(PACMAN_CADAVER, [96, 192, 32, 32]);
 
 	// Set pacman collision box
 	this.pacmanSprite.setCollisionBox([8, 8], [24, 24])
@@ -1258,7 +1236,6 @@ Scene.prototype.pacman_ghosts_touch = function(){
 	var pacman_y = Math.floor((this.pacmanSprite.y + 16)/16)
 
 	if ((pacman_x == blinky_x) && (pacman_y == blinky_y)){
-		console.log(this.blinky.state)
 		if (this.blinky.state == PhantomState.FRIGHTENED){
 			this.checkGhostBonus = 1;
 			this.blinkyEat = true
@@ -1267,13 +1244,12 @@ Scene.prototype.pacman_ghosts_touch = function(){
 			this.blinky.inside_box = true
 			this.blinky.dots_eaten_on_entry = this.dotsNumber
 			this.blinky.state = PhantomState.CHASE
-			console.log("FRIGHTENED")
 		}
 		else{
-			console.log("PACMAN murio")
 			this.stateGame=4
 			this.death1Sound.play()
 			this.mainSound.stop()
+			this.eatenSound.stop()
 			this.auxTime=this.currentTime
 			this.reset_phantoms_to_box()
 		}
@@ -1288,13 +1264,12 @@ Scene.prototype.pacman_ghosts_touch = function(){
 			this.pinky.inside_box = true
 			this.pinky.dots_eaten_on_entry = this.dotsNumber
 			this.pinky.state = PhantomState.CHASE
-			console.log("FRIGHTENED")
 		}
 		else{
-			console.log("murio")
 			this.stateGame=4
 			this.death1Sound.play()
 			this.mainSound.stop()
+			this.eatenSound.stop()
 			this.auxTime=this.currentTime
 			this.reset_phantoms_to_box()
 		}
@@ -1308,13 +1283,12 @@ Scene.prototype.pacman_ghosts_touch = function(){
 			this.inky.inside_box = true
 			this.inky.dots_eaten_on_entry = this.dotsNumber
 			this.inky.state = PhantomState.CHASE
-			console.log("FRIGHTENED")
 		}
 		else{
-			console.log("murio")
 			this.stateGame=4
 			this.death1Sound.play()
 			this.mainSound.stop()
+			this.eatenSound.stop()
 			this.auxTime=this.currentTime
 			this.reset_phantoms_to_box()
 		}
@@ -1328,13 +1302,12 @@ Scene.prototype.pacman_ghosts_touch = function(){
 			this.clyde.inside_box = true
 			this.clyde.dots_eaten_on_entry = this.dotsNumber
 			this.clyde.state = PhantomState.CHASE
-			console.log("FRIGHTENED")
 		}
 		else{
-			console.log("murio")
 			this.stateGame=4
 			this.death1Sound.play()
 			this.mainSound.stop()
+			this.eatenSound.stop()
 			this.auxTime=this.currentTime
 			this.reset_phantoms_to_box()
 		}
@@ -1348,10 +1321,13 @@ Scene.prototype.check_tricks = function(){
 		console.log("Ahora no te mueres")
 	}
 	else if(keyboard[50]){
+		this.dotsNumber = this.eat_power_pellet()
+	}
+	else if(keyboard[51]){
 		this.dotsNumber = this.player_win()
-		console.log("Ganaste")
 	}
 }
+
 Scene.prototype.reset_phantoms_to_box = function(){
 	this.blinky.inside_box = true
 	this.blinky.dots_eaten_on_entry = this.dotsNumber
@@ -1363,8 +1339,7 @@ Scene.prototype.reset_phantoms_to_box = function(){
 	this.clyde.dots_eaten_on_entry = this.dotsNumber
 }
 
-
-// Se encarga de canviar el estado de los fantasmas dependiendo del nivel y el tiempo
+// Se encarga de cambiar el estado de los fantasmas dependiendo del nivel y el tiempo
 Scene.prototype.update_phantom_state = function(){
 	var new_state;
 	var t = Math.floor(this.currentTime /1000)
