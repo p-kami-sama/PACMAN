@@ -65,7 +65,7 @@ function Scene()
 	this.highscore = 1000
 	this.maxSpeed = 2
 	this.hardness_settings = structuredClone(hardness_settings)
-	this.win_condition = 284//284
+	this.win_condition = 284 //284 dots + PowerPellets
 
 	this.start_game()
 }
@@ -75,7 +75,7 @@ Scene.prototype.start_game = function(){
 	this.score = 0
 	this.level = 0
 	this.stateGame = 1
-	this.pacmanLives = 2
+	this.pacmanLives = 3
 	this.selectMenu = 0
 
 	// TRICKS
@@ -300,7 +300,6 @@ Scene.prototype.update = function(deltaTime)
 
 			this.stateGame = 6
 			
-			//aqui poner numerito —> points_wined_eating_ghost
 		}
 		
 		// Hace que los fantasmas parpadeen antes de dejar de estar FRIGHTENED
@@ -395,14 +394,14 @@ Scene.prototype.update = function(deltaTime)
 				this.pacmanSprite.setAnimation(PACMAN_STOP_LEFT);
 			}
 			else if(tileId == 11){
-				//console.log(this.pacmanSprite.x)
-				//this.pacmanSprite.x -= this.speedPacman;
-				if (this.pacmanSprite.x <= 0) this.pacmanSprite.x=426
+
+				if (this.pacmanSprite.x <= 0){
+					this.pacmanSprite.x=426
+				}
 			}
 			else{
 				this.getTilepos(this.pacmanSprite.x, this.pacmanSprite.y)
 				this.eat_dot(this.pacmanSprite.x, this.pacmanSprite.y)
-				
 			}
 			break;
 	
@@ -410,8 +409,7 @@ Scene.prototype.update = function(deltaTime)
 			this.pacmanSprite.y -= this.speedPacman;
 			var tileId = this.map.collisionUp(this.pacmanSprite);
 	
-			if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48)
-			{
+			if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48){
 				this.pacmanSprite.y += this.speedPacman;
 				this.pacmanSprite.currentAnimation = PACMAN_STOP_UP
 				this.pacmanSprite.setAnimation(PACMAN_STOP_UP);
@@ -426,14 +424,15 @@ Scene.prototype.update = function(deltaTime)
 			this.pacmanSprite.x += this.speedPacman;
 			var tileId = this.map.collisionRight(this.pacmanSprite);
 			
-			if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48 && tileId != 13)
-			{
+			if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48 && tileId != 13){
 				this.pacmanSprite.x -= this.speedPacman;
 				this.pacmanSprite.currentAnimation = PACMAN_STOP_RIGHT
 				this.pacmanSprite.setAnimation(PACMAN_STOP_RIGHT);
 			}
 			else if(tileId == 13){
-				if (this.pacmanSprite.x >= 426+32) this.pacmanSprite.x=0
+				if (this.pacmanSprite.x >= 426+32){
+					this.pacmanSprite.x=0
+				}
 			}
 			else{
 				this.getTilepos(this.pacmanSprite.x, this.pacmanSprite.y)
@@ -445,8 +444,7 @@ Scene.prototype.update = function(deltaTime)
 			this.pacmanSprite.y += this.speedPacman;
 			var tileId = this.map.collisionDown(this.pacmanSprite);
 			
-			if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48)
-			{
+			if(tileId != 0 && tileId != 46 && tileId != 45 && tileId != 48){
 				this.pacmanSprite.y -= this.speedPacman;
 				this.pacmanSprite.currentAnimation = PACMAN_STOP_DOWN
 				this.pacmanSprite.setAnimation(PACMAN_STOP_DOWN);
@@ -513,7 +511,7 @@ Scene.prototype.update = function(deltaTime)
 			this.blinky.sprite.y = 16*15+8
 			this.blinky.actual_direction = "right"
 		}
-		else if ( this.pinky.inside_box && ( this.pinky.dots_eaten_on_entry + 1 < this.dotsNumber) ){
+		else if ( this.pinky.inside_box && ( this.pinky.dots_eaten_on_entry + 5 < this.dotsNumber) ){
 			this.pinky.inside_box = false
 			this.pinky.sprite.x =  16*13+8
 			this.pinky.sprite.y = 16*15+8
@@ -579,7 +577,6 @@ Scene.prototype.update = function(deltaTime)
 			this.stateGame = 1
 			this.ghostateSound.stop()
 			this.eatenSound.play()
-
 
 			this.blinkyEat = false
 			this.pinkyEat = false
@@ -665,6 +662,15 @@ Scene.prototype.draw = function ()
 			var textSize = context.measureText(text);
 			context.fillText(text, 224 - textSize.width/2, 16*17);
 			context.fillStyle = "White";
+			this.blinky.inside_box = true
+			this.blinky.dots_eaten_on_entry = this.dotsNumber
+			this.pinky.inside_box = true
+			this.pinky.dots_eaten_on_entry = this.dotsNumber
+			this.inky.inside_box = true
+			this.inky.dots_eaten_on_entry = this.dotsNumber
+			this.clyde.inside_box = true
+			this.clyde.dots_eaten_on_entry = this.dotsNumber
+
 		}
 
 		// End game blink
